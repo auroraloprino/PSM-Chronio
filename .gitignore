@@ -1,5 +1,52 @@
-# IDE
-.idea/
-
 # Gradle
 .gradle/
+build/
+app/build/
+*/build/
+out/
+
+# Gradle wrapper (NON ignorare gradle-wrapper.jar, serve al progetto)
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration file (contiene percorsi locali dell'SDK)
+local.properties
+
+# IDE - Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+Thumbs.db
+
+# Android Studio captures / profiling
+captures/
+.navigation/
+
+# Cache di Kotlin
+.kotlin/
+
+# Native build
+.externalNativeBuild/
+.cxx/
+
+# APK / AAB generati
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# File di firma (a meno che non vogliate condividerli col team, in genere NO)
+*.jks
+*.keystore
+
+# File di backup
+*.bak
+*~
