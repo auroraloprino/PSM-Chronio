@@ -116,7 +116,7 @@ fun EventForm(
                     onSave(event, selectedTagIds.toList())
                 },
                 modifier = Modifier.weight(1f)
-            ) { Text("Save") }
+            ) { Text("Salva") }
         }
 
         if (initial != null && onDelete != null) {
@@ -124,7 +124,7 @@ fun EventForm(
                 onClick = { onDelete(initial) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) { Text("Delete") }
+            ) { Text("Elimina") }
         }
     }
 }

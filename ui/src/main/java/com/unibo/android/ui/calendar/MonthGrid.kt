@@ -31,7 +31,7 @@ import com.unibo.android.ui.utils.firstDayOfWeekInMonth
 import com.unibo.android.ui.utils.formatMonthYear
 import com.unibo.android.ui.utils.isSameDay
 
-private val DAY_LABELS = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+private val DAY_LABELS = listOf("Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab")
 //TODO: magari mettere i numeri come costanti così evito i magic numbers.
 // bisogna vedere se è una best practive anche se penso di sì
 @Composable
@@ -54,11 +54,11 @@ fun MonthGrid(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onPrev) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous month")
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Mese precedente")
             }
             Text(formatMonthYear(visibleMonth), style = MaterialTheme.typography.titleMedium)
             IconButton(onClick = onNext) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Next month")
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Mese successivo")
             }
         }
 

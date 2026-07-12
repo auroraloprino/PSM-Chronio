@@ -31,10 +31,10 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
     var showForm by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Calendar") }) },
+        topBar = { TopAppBar(title = { Text("Chronio") }) },
         floatingActionButton = {
             FloatingActionButton(onClick = { vm.selectEvent(null); showForm = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add event")
+                Icon(Icons.Default.Add, contentDescription = "Aggiungi evento")
             }
         }
     ) { padding ->

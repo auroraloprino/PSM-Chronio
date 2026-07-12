@@ -34,7 +34,7 @@ fun DayView(
 
         if (events.isEmpty()) {
             Text(
-                "No events",
+                "Nessun evento",
                 modifier = Modifier.padding(horizontal = 16.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
