@@ -6,22 +6,29 @@ import com.unibo.android.domain.di.UseCasesProvider
 import com.unibo.android.domain.models.EventModel
 import com.unibo.android.domain.models.TagModel
 import com.unibo.android.ui.utils.addMonths
+import com.unibo.android.ui.utils.addWeeks
 import com.unibo.android.ui.utils.endOfDay
 import com.unibo.android.ui.utils.isSameDay
+import com.unibo.android.ui.utils.isSameWeek
 import com.unibo.android.ui.utils.startOfDay
+import com.unibo.android.ui.utils.startOfWeek
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+enum class CalendarView { MONTH, WEEK, DAY }
+
 data class CalendarUiState(
     val events: List<EventModel> = emptyList(),
     val tags: List<TagModel> = emptyList(),
-    val visibleMonth: Long = System.currentTimeMillis(),
-    val selectedDay: Long = System.currentTimeMillis(),
+    val visibleMonth: Long = startOfDay(System.currentTimeMillis()),
+    val visibleWeek: Long = startOfDay(System.currentTimeMillis()),
+    val selectedDay: Long = startOfDay(System.currentTimeMillis()),
     val activeFilters: Set<Long> = emptySet(),
-    val selectedEvent: EventModel? = null
+    val selectedEvent: EventModel? = null,
+    val calendarView: CalendarView = CalendarView.MONTH
 )
 
 class CalendarViewModel : ViewModel() {
@@ -42,13 +49,19 @@ class CalendarViewModel : ViewModel() {
         }
     }
 
-    fun selectDay(ms: Long) = _uiState.update { it.copy(selectedDay = ms) }
+    fun selectDay(ms: Long) = _uiState.update { it.copy(selectedDay = startOfDay(ms)) }
 
     fun selectEvent(event: EventModel?) = _uiState.update { it.copy(selectedEvent = event) }
 
     fun nextMonth() = _uiState.update { it.copy(visibleMonth = addMonths(it.visibleMonth, 1)) }
 
     fun prevMonth() = _uiState.update { it.copy(visibleMonth = addMonths(it.visibleMonth, -1)) }
+
+    fun nextWeek() = _uiState.update { it.copy(visibleWeek = addWeeks(it.visibleWeek, 1)) }
+
+    fun prevWeek() = _uiState.update { it.copy(visibleWeek = addWeeks(it.visibleWeek, -1)) }
+
+    fun setView(view: CalendarView) = _uiState.update { it.copy(calendarView = view) }
 
     fun toggleFilter(tagId: Long) {
         _uiState.update {
@@ -69,6 +82,11 @@ class CalendarViewModel : ViewModel() {
     }
 
     fun eventsForSelectedDay(): List<EventModel> = eventsForDay(_uiState.value.selectedDay)
+
+    fun eventsForWeek(weekMs: Long): List<EventModel> {
+        val state = _uiState.value
+        return state.events.filter { isSameWeek(it.startTime, weekMs) }
+    }
 
     fun hasEvents(dayMs: Long): Boolean = _uiState.value.events.any { isSameDay(it.startTime, dayMs) }
 
