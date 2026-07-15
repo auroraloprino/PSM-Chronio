@@ -5,9 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.unibo.android.data.local.dao.BoardDao
+import com.unibo.android.data.local.dao.BoardTagDao
 import com.unibo.android.data.local.dao.CardDao
 import com.unibo.android.data.local.dao.ColumnDao
 import com.unibo.android.data.local.entity.BoardEntity
+import com.unibo.android.data.local.entity.BoardTagEntity
 import com.unibo.android.data.local.entity.CardEntity
 import com.unibo.android.data.local.entity.CardTagCrossRef
 import com.unibo.android.data.local.entity.ColumnEntity
@@ -17,6 +19,7 @@ import com.unibo.android.data.local.entity.ColumnEntity
         BoardEntity::class,
         ColumnEntity::class,
         CardEntity::class,
+        BoardTagEntity::class,
         CardTagCrossRef::class
     ],
     version = 1
@@ -25,6 +28,7 @@ abstract class ChronioDatabase : RoomDatabase() {
     abstract fun boardDao(): BoardDao
     abstract fun columnDao(): ColumnDao
     abstract fun cardDao(): CardDao
+    abstract fun boardTagDao(): BoardTagDao
 
     companion object {
         @Volatile

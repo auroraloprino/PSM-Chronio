@@ -20,8 +20,6 @@ interface CardDao {
 
     @Delete
     suspend fun delete(card: CardEntity)
-
-    /** Card + tag di una colonna, ordinate per posizione, osservabili in tempo reale. */
     @Transaction
     @Query("SELECT * FROM cards WHERE columnId = :columnId ORDER BY position ASC")
     fun observeForColumn(columnId: Long): Flow<List<CardWithTags>>
@@ -32,10 +30,15 @@ interface CardDao {
     @Query("UPDATE cards SET columnId = :targetColumnId, position = :newPosition WHERE id = :cardId")
     suspend fun moveToColumn(cardId: Long, targetColumnId: Long, newPosition: Int)
 
-    // --- gestione tag della card (join) ---
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCrossRef(crossRef: CardTagCrossRef)
+    suspend fun insertCrossRefs(refs: List<CardTagCrossRef>)
 
     @Query("DELETE FROM card_tag_cross_ref WHERE cardId = :cardId")
     suspend fun deleteCrossRefsForCard(cardId: Long)
+
+    @Transaction
+    suspend fun replaceTagsForCard(cardId: Long, refs: List<CardTagCrossRef>) {
+        deleteCrossRefsForCard(cardId)
+        if (refs.isNotEmpty()) insertCrossRefs(refs)
+    }
 }
