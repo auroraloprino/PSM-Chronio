@@ -2,8 +2,12 @@ package com.unibo.android.domain.di
 
 import com.unibo.android.domain.usecases.AddColumnUseCase
 import com.unibo.android.domain.usecases.AddColumnUseCaseImpl
+import com.unibo.android.domain.usecases.DeleteBoardTagUseCase
+import com.unibo.android.domain.usecases.DeleteBoardTagUseCaseImpl
 import com.unibo.android.domain.usecases.DeleteColumnUseCase
 import com.unibo.android.domain.usecases.DeleteColumnUseCaseImpl
+import com.unibo.android.domain.usecases.GetBoardTagsUseCase
+import com.unibo.android.domain.usecases.GetBoardTagsUseCaseImpl
 import com.unibo.android.domain.usecases.GetBoardsUseCase
 import com.unibo.android.domain.usecases.GetBoardsUseCaseImpl
 import com.unibo.android.domain.usecases.GetCardsUseCase
@@ -14,6 +18,8 @@ import com.unibo.android.domain.usecases.MoveCardUseCase
 import com.unibo.android.domain.usecases.MoveCardUseCaseImpl
 import com.unibo.android.domain.usecases.ReorderColumnsUseCase
 import com.unibo.android.domain.usecases.ReorderColumnsUseCaseImpl
+import com.unibo.android.domain.usecases.SaveBoardTagUseCase
+import com.unibo.android.domain.usecases.SaveBoardTagUseCaseImpl
 import com.unibo.android.domain.usecases.SaveBoardUseCase
 import com.unibo.android.domain.usecases.SaveBoardUseCaseImpl
 import com.unibo.android.domain.usecases.SaveCardUseCase
@@ -29,6 +35,9 @@ object UseCasesProvider {
     lateinit var getCardsUseCase: GetCardsUseCase
     lateinit var saveCardUseCase: SaveCardUseCase
     lateinit var moveCardUseCase: MoveCardUseCase
+    lateinit var getBoardTagsUseCase: GetBoardTagsUseCase
+    lateinit var saveBoardTagUseCase: SaveBoardTagUseCase
+    lateinit var deleteBoardTagUseCase: DeleteBoardTagUseCase
 
     fun setup(repositoryProvider: RepositoryProvider) {
         getBoardsUseCase = GetBoardsUseCaseImpl(repositoryProvider.boardRepository)
@@ -40,5 +49,8 @@ object UseCasesProvider {
         getCardsUseCase = GetCardsUseCaseImpl(repositoryProvider.cardRepository)
         saveCardUseCase = SaveCardUseCaseImpl(repositoryProvider.cardRepository)
         moveCardUseCase = MoveCardUseCaseImpl(repositoryProvider.cardRepository)
+        getBoardTagsUseCase = GetBoardTagsUseCaseImpl(repositoryProvider.boardTagRepository)
+        saveBoardTagUseCase = SaveBoardTagUseCaseImpl(repositoryProvider.boardTagRepository)
+        deleteBoardTagUseCase = DeleteBoardTagUseCaseImpl(repositoryProvider.boardTagRepository)
     }
 }
