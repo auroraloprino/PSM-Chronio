@@ -5,7 +5,7 @@ import com.unibo.android.data.local.db.ChronioDatabase
 import com.unibo.android.data.local.entity.CardEntity
 import com.unibo.android.data.local.entity.CardTagCrossRef
 import com.unibo.android.data.local.entity.CardWithTags
-import com.unibo.android.data.local.entity.TagEntity
+import com.unibo.android.data.local.entity.BoardTagEntity
 import com.unibo.android.domain.models.CardModel
 import com.unibo.android.domain.models.BoardTagModel
 import com.unibo.android.domain.repositories.CardRepository
@@ -59,5 +59,5 @@ class CardRepositoryImpl(context: Context) : CardRepository {
         position = position
     )
 
-    private fun TagEntity.toModel() = BoardTagModel(id, name, color)
+    private fun BoardTagEntity.toModel() = BoardTagModel(id, name, color)
 }

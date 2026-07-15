@@ -10,5 +10,5 @@ data class BoardEntity(
     val title: String,
     val description: String = "",
     val coverImageUrl: String? = null,
-    val createdAt : Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis()
 )

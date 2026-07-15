@@ -15,5 +15,5 @@ data class CardWithTags(
             entityColumn = "tagId"
         )
     )
-    val tags: List<TagEntity>
+    val tags: List<BoardTagEntity>
 )
