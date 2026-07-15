@@ -1,7 +1,8 @@
 package com.unibo.android.ui.calendar
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,20 +32,22 @@ import com.unibo.android.ui.utils.firstDayOfWeekInMonth
 import com.unibo.android.ui.utils.formatMonthYear
 import com.unibo.android.ui.utils.isSameDay
 
-private val DAY_LABELS = listOf("Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab")
+private val DAY_LABELS = listOf("Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom")
 //TODO: magari mettere i numeri come costanti così evito i magic numbers.
 // bisogna vedere se è una best practive anche se penso di sì
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 fun MonthGrid(
     visibleMonth: Long,
     selectedDay: Long,
     hasEvents: (Long) -> Boolean,
     onDayClick: (Long) -> Unit,
+    onDayDoubleClick: (Long) -> Unit = {},
     onPrev: () -> Unit,
     onNext: () -> Unit
 ) {
     val days = daysInMonth(visibleMonth)
-    val firstDow = firstDayOfWeekInMonth(visibleMonth) - 1
+    val firstDow = firstDayOfWeekInMonth(visibleMonth)
     val today = System.currentTimeMillis()
 
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
@@ -104,7 +107,10 @@ fun MonthGrid(
                                         else -> MaterialTheme.colorScheme.surface
                                     }
                                 )
-                                .clickable { onDayClick(dayMs) },
+                                .combinedClickable(
+                                    onClick = { onDayClick(dayMs) },
+                                    onDoubleClick = { onDayDoubleClick(dayMs) }
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
