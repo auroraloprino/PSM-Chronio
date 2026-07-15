@@ -7,7 +7,7 @@ import com.unibo.android.data.local.entity.CardTagCrossRef
 import com.unibo.android.data.local.entity.CardWithTags
 import com.unibo.android.data.local.entity.TagEntity
 import com.unibo.android.domain.models.CardModel
-import com.unibo.android.domain.models.TagModel
+import com.unibo.android.domain.models.BoardTagModel
 import com.unibo.android.domain.repositories.CardRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -59,5 +59,5 @@ class CardRepositoryImpl(context: Context) : CardRepository {
         position = position
     )
 
-    private fun TagEntity.toModel() = TagModel(id, name, color)
+    private fun TagEntity.toModel() = BoardTagModel(id, name, color)
 }
