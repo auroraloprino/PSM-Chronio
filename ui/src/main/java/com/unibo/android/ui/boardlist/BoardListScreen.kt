@@ -28,9 +28,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.unibo.android.domain.models.BoardModel
 import com.unibo.android.ui.board.dialogs.BoardDialog
 
@@ -90,17 +92,20 @@ fun BoardListScreen(
 @Composable
 private fun BoardCard(board: BoardModel, onClick: () -> Unit) {
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(board.title, style = MaterialTheme.typography.titleMedium)
-            if (board.description.isNotBlank()) {
-                Text(
-                    board.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 4.dp)
+        Column {
+            if (board.coverImageUrl != null) {
+                AsyncImage(
+                    model = board.coverImageUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
                 )
+            }
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(board.title, style = MaterialTheme.typography.titleMedium)
+                // ...
             }
         }
     }
