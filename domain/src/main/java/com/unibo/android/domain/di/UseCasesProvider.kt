@@ -4,6 +4,8 @@ import com.unibo.android.domain.usecases.AddColumnUseCase
 import com.unibo.android.domain.usecases.AddColumnUseCaseImpl
 import com.unibo.android.domain.usecases.DeleteBoardTagUseCase
 import com.unibo.android.domain.usecases.DeleteBoardTagUseCaseImpl
+import com.unibo.android.domain.usecases.DeleteCardUseCase
+import com.unibo.android.domain.usecases.DeleteCardUseCaseImpl
 import com.unibo.android.domain.usecases.DeleteColumnUseCase
 import com.unibo.android.domain.usecases.DeleteColumnUseCaseImpl
 import com.unibo.android.domain.usecases.GetBoardTagsUseCase
@@ -35,6 +37,7 @@ object UseCasesProvider {
     lateinit var getCardsUseCase: GetCardsUseCase
     lateinit var saveCardUseCase: SaveCardUseCase
     lateinit var moveCardUseCase: MoveCardUseCase
+    lateinit var deleteCardUseCase: DeleteCardUseCase
     lateinit var getBoardTagsUseCase: GetBoardTagsUseCase
     lateinit var saveBoardTagUseCase: SaveBoardTagUseCase
     lateinit var deleteBoardTagUseCase: DeleteBoardTagUseCase
@@ -49,6 +52,7 @@ object UseCasesProvider {
         getCardsUseCase = GetCardsUseCaseImpl(repositoryProvider.cardRepository)
         saveCardUseCase = SaveCardUseCaseImpl(repositoryProvider.cardRepository)
         moveCardUseCase = MoveCardUseCaseImpl(repositoryProvider.cardRepository)
+        deleteCardUseCase = DeleteCardUseCaseImpl(repositoryProvider.cardRepository)
         getBoardTagsUseCase = GetBoardTagsUseCaseImpl(repositoryProvider.boardTagRepository)
         saveBoardTagUseCase = SaveBoardTagUseCaseImpl(repositoryProvider.boardTagRepository)
         deleteBoardTagUseCase = DeleteBoardTagUseCaseImpl(repositoryProvider.boardTagRepository)
