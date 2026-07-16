@@ -35,7 +35,7 @@ import com.unibo.android.ui.utils.startOfWeek
 import java.util.Calendar
 
 private val HOUR_HEIGHT = 56.dp
-private val TIME_COL_WIDTH = 44.dp
+private val TIME_COL_WIDTH = 56.dp
 
 @Composable
 fun WeekView(
@@ -120,7 +120,7 @@ fun WeekView(
                 modifier = Modifier.width(TIME_COL_WIDTH).padding(4.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Giornata", style = MaterialTheme.typography.labelSmall, fontSize = 9.sp, textAlign = TextAlign.Center)
+                Text("Giornata", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
             }
             days.forEach { dayMs ->
                 val dayAllDay = allDayEvents.filter { isSameDay(it.startTime, dayMs) }
