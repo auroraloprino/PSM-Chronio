@@ -2,6 +2,8 @@ package com.unibo.android.domain.di
 
 import com.unibo.android.domain.usecases.DeleteEventUseCase
 import com.unibo.android.domain.usecases.DeleteEventUseCaseImpl
+import com.unibo.android.domain.usecases.DeleteTagUseCase
+import com.unibo.android.domain.usecases.DeleteTagUseCaseImpl
 import com.unibo.android.domain.usecases.GetEventsInRangeUseCase
 import com.unibo.android.domain.usecases.GetEventsInRangeUseCaseImpl
 import com.unibo.android.domain.usecases.GetEventsUseCase
@@ -23,6 +25,7 @@ object UseCasesProvider {
     lateinit var deleteEventUseCase: DeleteEventUseCase
     lateinit var getTagsUseCase: GetTagsUseCase
     lateinit var saveTagUseCase: SaveTagUseCase
+    lateinit var deleteTagUseCase: DeleteTagUseCase
 
     fun setup(repositoryProvider: RepositoryProvider) {
         getEventsUseCase = GetEventsUseCaseImpl(repositoryProvider.eventRepository)
@@ -32,5 +35,6 @@ object UseCasesProvider {
         deleteEventUseCase = DeleteEventUseCaseImpl(repositoryProvider.eventRepository)
         getTagsUseCase = GetTagsUseCaseImpl(repositoryProvider.tagRepository)
         saveTagUseCase = SaveTagUseCaseImpl(repositoryProvider.tagRepository)
+        deleteTagUseCase = DeleteTagUseCaseImpl(repositoryProvider.tagRepository)
     }
 }

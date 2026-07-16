@@ -6,5 +6,6 @@ data class EventModel(
     val description: String = "",
     val startTime: Long,
     val endTime: Long,
-    val reminderMinutes: Int = 30
+    val reminderMinutes: Int = 30,
+    val tagIds: List<Long> = emptyList()
 )

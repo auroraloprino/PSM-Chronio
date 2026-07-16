@@ -18,6 +18,10 @@ class TagRepositoryImpl(context: Context) : TagRepository {
     override suspend fun save(tag: TagModel): Long =
         tagDao.insert(tag.toEntity())
 
+    override suspend fun update(tag: TagModel) {
+        tagDao.insert(tag.toEntity())
+    }
+
     override suspend fun delete(tag: TagModel) =
         tagDao.delete(tag.toEntity())
 
