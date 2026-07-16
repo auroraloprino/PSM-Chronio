@@ -49,7 +49,12 @@ class CalendarViewModel : ViewModel() {
         }
     }
 
-    fun selectDay(ms: Long) = _uiState.update { it.copy(selectedDay = startOfDay(ms)) }
+    fun selectDay(ms: Long) = _uiState.update {
+        it.copy(
+            selectedDay = startOfDay(ms),
+            visibleWeek = startOfDay(ms)
+        )
+    }
 
     fun selectEvent(event: EventModel?) = _uiState.update { it.copy(selectedEvent = event) }
 
@@ -73,11 +78,7 @@ class CalendarViewModel : ViewModel() {
 
     fun eventsForDay(dayMs: Long): List<EventModel> {
         val state = _uiState.value
-        val filtered = if (state.activeFilters.isEmpty()) state.events
-        else state.events.filter { event ->
-            UseCasesProvider.getTagsUseCase.let { state.activeFilters.any { _ -> true } }
-            true
-        }
+        val filtered = applyFilters(state)
         return filtered.filter { isSameDay(it.startTime, dayMs) }
     }
 
@@ -85,10 +86,29 @@ class CalendarViewModel : ViewModel() {
 
     fun eventsForWeek(weekMs: Long): List<EventModel> {
         val state = _uiState.value
-        return state.events.filter { isSameWeek(it.startTime, weekMs) }
+        val filtered = applyFilters(state)
+        return filtered.filter { isSameWeek(it.startTime, weekMs) }
     }
 
-    fun hasEvents(dayMs: Long): Boolean = _uiState.value.events.any { isSameDay(it.startTime, dayMs) }
+    fun hasEvents(dayMs: Long): Boolean {
+        val state = _uiState.value
+        val filtered = applyFilters(state)
+        return filtered.any { isSameDay(it.startTime, dayMs) }
+    }
+
+    private fun applyFilters(state: CalendarUiState): List<EventModel> {
+        if (state.activeFilters.isEmpty()) return state.events
+        val noTagActive = NO_TAG_FILTER_ID in state.activeFilters
+        val tagFilters = state.activeFilters - NO_TAG_FILTER_ID
+        return state.events.filter { event ->
+            (noTagActive && event.tagIds.isEmpty()) ||
+            tagFilters.any { it in event.tagIds }
+        }
+    }
+
+    companion object {
+        const val NO_TAG_FILTER_ID = -1L
+    }
 
     fun saveEvent(event: EventModel, tagIds: List<Long>) {
         viewModelScope.launch {
@@ -100,6 +120,27 @@ class CalendarViewModel : ViewModel() {
     fun updateEvent(event: EventModel, tagIds: List<Long>) {
         viewModelScope.launch {
             UseCasesProvider.updateEventUseCase(event, tagIds)
+            loadData()
+        }
+    }
+
+    fun saveTag(tag: TagModel) {
+        viewModelScope.launch {
+            UseCasesProvider.saveTagUseCase(tag)
+            loadData()
+        }
+    }
+
+    fun updateTag(tag: TagModel) {
+        viewModelScope.launch {
+            UseCasesProvider.saveTagUseCase(tag)
+            loadData()
+        }
+    }
+
+    fun deleteTag(tag: TagModel) {
+        viewModelScope.launch {
+            UseCasesProvider.deleteTagUseCase(tag)
             loadData()
         }
     }
