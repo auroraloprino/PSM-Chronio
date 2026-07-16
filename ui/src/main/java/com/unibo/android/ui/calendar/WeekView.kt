@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.unibo.android.domain.models.EventModel
+import com.unibo.android.domain.models.TagModel
 import com.unibo.android.ui.utils.formatDayShort
 import com.unibo.android.ui.utils.formatWeekRange
 import com.unibo.android.ui.utils.isSameDay
@@ -42,11 +43,13 @@ fun WeekView(
     visibleWeek: Long,
     selectedDay: Long,
     events: List<EventModel>,
+    tags: List<TagModel> = emptyList(),
     onDayClick: (Long) -> Unit,
     onEventClick: (EventModel) -> Unit,
     onPrev: () -> Unit,
     onNext: () -> Unit
 ) {
+    val tagsById = tags.associateBy { it.id }
     val weekStart = startOfWeek(visibleWeek)
     val days = (0..6).map { offset ->
         Calendar.getInstance().apply {
@@ -120,7 +123,7 @@ fun WeekView(
                 modifier = Modifier.width(TIME_COL_WIDTH).padding(4.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Giornata", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+                Text("Giorno", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
             }
             days.forEach { dayMs ->
                 val dayAllDay = allDayEvents.filter { isSameDay(it.startTime, dayMs) }
@@ -176,11 +179,15 @@ fun WeekView(
                         ) {
                             Column(modifier = Modifier.padding(1.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                                 hourEvents.forEach { event ->
+                                    val accentColor = event.tagIds.firstOrNull()
+                                        ?.let { tagsById[it] }
+                                        ?.let { runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(it.color)) }.getOrNull() }
+                                        ?: MaterialTheme.colorScheme.primary
                                     Text(
                                         event.title,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f), MaterialTheme.shapes.extraSmall)
+                                            .background(accentColor.copy(alpha = 0.85f), MaterialTheme.shapes.extraSmall)
                                             .clickable { onEventClick(event) }
                                             .padding(horizontal = 3.dp, vertical = 2.dp),
                                         style = MaterialTheme.typography.labelSmall,
