@@ -8,6 +8,7 @@ import com.unibo.android.domain.models.TagModel
 import com.unibo.android.ui.utils.addMonths
 import com.unibo.android.ui.utils.addWeeks
 import com.unibo.android.ui.utils.endOfDay
+import com.unibo.android.ui.utils.eventSpansDay
 import com.unibo.android.ui.utils.isSameDay
 import com.unibo.android.ui.utils.isSameWeek
 import com.unibo.android.ui.utils.startOfDay
@@ -79,7 +80,7 @@ class CalendarViewModel : ViewModel() {
     fun eventsForDay(dayMs: Long): List<EventModel> {
         val state = _uiState.value
         val filtered = applyFilters(state)
-        return filtered.filter { isSameDay(it.startTime, dayMs) }
+        return filtered.filter { eventSpansDay(it.startTime, it.endTime, dayMs) }
     }
 
     fun eventsForSelectedDay(): List<EventModel> = eventsForDay(_uiState.value.selectedDay)
@@ -87,13 +88,15 @@ class CalendarViewModel : ViewModel() {
     fun eventsForWeek(weekMs: Long): List<EventModel> {
         val state = _uiState.value
         val filtered = applyFilters(state)
-        return filtered.filter { isSameWeek(it.startTime, weekMs) }
+        val weekStart = startOfWeek(weekMs)
+        val weekEnd = weekStart + 7 * 24 * 3600_000L
+        return filtered.filter { it.startTime < weekEnd && it.endTime > weekStart }
     }
 
     fun hasEvents(dayMs: Long): Boolean {
         val state = _uiState.value
         val filtered = applyFilters(state)
-        return filtered.any { isSameDay(it.startTime, dayMs) }
+        return filtered.any { eventSpansDay(it.startTime, it.endTime, dayMs) }
     }
 
     private fun applyFilters(state: CalendarUiState): List<EventModel> {

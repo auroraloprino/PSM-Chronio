@@ -38,6 +38,13 @@ fun isSameDay(ms1: Long, ms2: Long): Boolean {
             c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
 }
 
+/** True if the event is visible on [dayMs] — covers start day, end day, and all days in between. */
+fun eventSpansDay(startTime: Long, endTime: Long, dayMs: Long): Boolean {
+    val dayStart = startOfDay(dayMs)
+    val dayEnd = endOfDay(dayMs)
+    return startTime <= dayEnd && endTime > dayStart
+}
+
 fun formatTime(ms: Long): String =
     SimpleDateFormat("HH:mm", Locale.getDefault()).format(ms)
 

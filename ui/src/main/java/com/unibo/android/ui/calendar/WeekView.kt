@@ -23,12 +23,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.unibo.android.domain.models.EventModel
 import com.unibo.android.domain.models.TagModel
+import com.unibo.android.ui.utils.eventSpansDay
 import com.unibo.android.ui.utils.formatDayShort
 import com.unibo.android.ui.utils.formatWeekRange
 import com.unibo.android.ui.utils.isSameDay
@@ -38,6 +40,8 @@ import java.util.Calendar
 private val HOUR_HEIGHT = 56.dp
 private val TIME_COL_WIDTH = 56.dp
 
+private const val DEFAULT_TAG_COLOR = "#9E9E9E"
+
 @Composable
 fun WeekView(
     visibleWeek: Long,
@@ -45,6 +49,7 @@ fun WeekView(
     events: List<EventModel>,
     tags: List<TagModel> = emptyList(),
     onDayClick: (Long) -> Unit,
+    onSlotClick: (dayMs: Long, hour: Int) -> Unit = { _, _ -> },
     onEventClick: (EventModel) -> Unit,
     onPrev: () -> Unit,
     onNext: () -> Unit
@@ -126,17 +131,25 @@ fun WeekView(
                 Text("Giorno", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
             }
             days.forEach { dayMs ->
-                val dayAllDay = allDayEvents.filter { isSameDay(it.startTime, dayMs) }
+                val dayAllDay = allDayEvents.filter { eventSpansDay(it.startTime, it.endTime, dayMs) }
                 Column(modifier = Modifier.weight(1f).padding(2.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     dayAllDay.forEach { event ->
+                        val accentColor = event.tagIds.firstOrNull()
+                            ?.let { tagsById[it] }
+                            ?.let { runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(it.color)) }.getOrNull() }
+                            ?: androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(DEFAULT_TAG_COLOR))
+                        val onAccent = if (accentColor.luminance() > 0.4f) androidx.compose.ui.graphics.Color.Black else androidx.compose.ui.graphics.Color.White
+                        // show title only on the first day of the span visible in this week
+                        val isFirstVisibleDay = isSameDay(event.startTime, dayMs) || dayMs == days.first()
                         Text(
-                            event.title,
+                            if (isFirstVisibleDay) event.title else "",
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.extraSmall)
-                                .clickable { onEventClick(event) }
+                                .background(accentColor, MaterialTheme.shapes.extraSmall)
+                                .clickable(onClick = { onEventClick(event) })
                                 .padding(horizontal = 4.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
+                            color = onAccent,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -166,32 +179,38 @@ fun WeekView(
                     }
 
                     days.forEach { dayMs ->
-                        val hourEvents = timedEvents.filter {
-                            isSameDay(it.startTime, dayMs) &&
-                                    Calendar.getInstance().apply { timeInMillis = it.startTime }
-                                        .get(Calendar.HOUR_OF_DAY) == hour
+                        val hourEvents = timedEvents.filter { event ->
+                            val cal = Calendar.getInstance().apply { timeInMillis = event.startTime }
+                            // for multi-day timed events, show on each spanned day at the correct hour
+                            if (isSameDay(event.startTime, dayMs)) {
+                                cal.get(Calendar.HOUR_OF_DAY) == hour
+                            } else if (eventSpansDay(event.startTime, event.endTime, dayMs)) {
+                                hour == 0 // show continuation at top of day
+                            } else false
                         }
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(HOUR_HEIGHT)
                                 .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                                .clickable { onSlotClick(dayMs, hour) }
                         ) {
                             Column(modifier = Modifier.padding(1.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                                 hourEvents.forEach { event ->
                                     val accentColor = event.tagIds.firstOrNull()
                                         ?.let { tagsById[it] }
                                         ?.let { runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(it.color)) }.getOrNull() }
-                                        ?: MaterialTheme.colorScheme.primary
+                                        ?: androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(DEFAULT_TAG_COLOR))
+                                    val onAccent = if (accentColor.luminance() > 0.4f) androidx.compose.ui.graphics.Color.Black else androidx.compose.ui.graphics.Color.White
                                     Text(
                                         event.title,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(accentColor.copy(alpha = 0.85f), MaterialTheme.shapes.extraSmall)
-                                            .clickable { onEventClick(event) }
+                                            .background(accentColor, MaterialTheme.shapes.extraSmall)
+                                            .clickable(onClick = { onEventClick(event) })
                                             .padding(horizontal = 3.dp, vertical = 2.dp),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        color = onAccent,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis
                                     )

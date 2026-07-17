@@ -23,24 +23,33 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.unibo.android.domain.models.EventModel
+import com.unibo.android.domain.models.TagModel
+import com.unibo.android.ui.utils.eventSpansDay
 import com.unibo.android.ui.utils.formatDayFull
+import com.unibo.android.ui.utils.isSameDay
 import com.unibo.android.ui.utils.formatTime
 
 private val HOUR_HEIGHT = 64.dp
 private val TIME_COL_WIDTH = 52.dp
 
+private const val DEFAULT_TAG_COLOR = "#9E9E9E"
+
 @Composable
 fun DayView(
     selectedDay: Long,
     events: List<EventModel>,
+    tags: List<TagModel> = emptyList(),
     onEventClick: (EventModel) -> Unit,
+    onSlotClick: (hour: Int) -> Unit = {},
     onPrev: () -> Unit,
     onNext: () -> Unit
 ) {
+    val tagsById = tags.associateBy { it.id }
     val allDayEvents = events.filter { it.endTime - it.startTime >= 24 * 3600_000L }
     val timedEvents = events - allDayEvents.toSet()
 
@@ -79,14 +88,20 @@ fun DayView(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 allDayEvents.forEach { event ->
+                    val accentColor = event.tagIds.firstOrNull()
+                        ?.let { tagsById[it] }
+                        ?.let { runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(it.color)) }.getOrNull() }
+                        ?: androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(DEFAULT_TAG_COLOR))
+                    val onAccent = if (accentColor.luminance() > 0.4f) androidx.compose.ui.graphics.Color.Black else androidx.compose.ui.graphics.Color.White
                     Text(
                         event.title,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.extraSmall)
-                            .clickable { onEventClick(event) }
+                            .background(accentColor, MaterialTheme.shapes.extraSmall)
+                            .clickable(onClick = { onEventClick(event) })
                             .padding(horizontal = 8.dp, vertical = 2.dp),
                         style = MaterialTheme.typography.bodySmall,
+                        color = onAccent,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -96,15 +111,21 @@ fun DayView(
 
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             (0..23).forEach { hour ->
-                val hourEvents = timedEvents.filter {
-                    java.util.Calendar.getInstance().apply { timeInMillis = it.startTime }
-                        .get(java.util.Calendar.HOUR_OF_DAY) == hour
+                val hourEvents = timedEvents.filter { event ->
+                    val startHour = java.util.Calendar.getInstance()
+                        .apply { timeInMillis = event.startTime }.get(java.util.Calendar.HOUR_OF_DAY)
+                    if (isSameDay(event.startTime, selectedDay)) {
+                        startHour == hour
+                    } else if (eventSpansDay(event.startTime, event.endTime, selectedDay)) {
+                        hour == 0
+                    } else false
                 }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(HOUR_HEIGHT)
                         .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                        .clickable { onSlotClick(hour) }
                 ) {
                     Box(
                         modifier = Modifier.width(TIME_COL_WIDTH).padding(top = 4.dp, end = 8.dp),
@@ -122,24 +143,29 @@ fun DayView(
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         hourEvents.forEach { event ->
+                            val accentColor = event.tagIds.firstOrNull()
+                                ?.let { tagsById[it] }
+                                ?.let { runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(it.color)) }.getOrNull() }
+                                ?: androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(DEFAULT_TAG_COLOR))
+                            val onAccent = if (accentColor.luminance() > 0.4f) androidx.compose.ui.graphics.Color.Black else androidx.compose.ui.graphics.Color.White
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f), MaterialTheme.shapes.small)
-                                    .clickable { onEventClick(event) }
+                                    .background(accentColor, MaterialTheme.shapes.small)
+                                    .clickable(onClick = { onEventClick(event) })
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
                                     event.title,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    color = onAccent,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     "${formatTime(event.startTime)} – ${formatTime(event.endTime)}",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                                    color = onAccent.copy(alpha = 0.8f)
                                 )
                             }
                         }
