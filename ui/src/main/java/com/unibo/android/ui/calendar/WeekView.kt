@@ -64,10 +64,7 @@ fun WeekView(
     }
     val today = System.currentTimeMillis()
 
-    val allDayEvents = events.filter {
-        val duration = it.endTime - it.startTime
-        duration >= 24 * 3600_000L
-    }
+    val allDayEvents = events.filter { it.allDay }
     val timedEvents = events - allDayEvents.toSet()
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -181,12 +178,7 @@ fun WeekView(
                     days.forEach { dayMs ->
                         val hourEvents = timedEvents.filter { event ->
                             val cal = Calendar.getInstance().apply { timeInMillis = event.startTime }
-                            // for multi-day timed events, show on each spanned day at the correct hour
-                            if (isSameDay(event.startTime, dayMs)) {
-                                cal.get(Calendar.HOUR_OF_DAY) == hour
-                            } else if (eventSpansDay(event.startTime, event.endTime, dayMs)) {
-                                hour == 0 // show continuation at top of day
-                            } else false
+                            eventSpansDay(event.startTime, event.endTime, dayMs) && cal.get(Calendar.HOUR_OF_DAY) == hour
                         }
                         Box(
                             modifier = Modifier

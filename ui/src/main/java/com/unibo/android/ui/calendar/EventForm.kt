@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.unibo.android.domain.models.EventModel
 import com.unibo.android.domain.models.TagModel
 import com.unibo.android.ui.utils.TagChip
+import com.unibo.android.ui.utils.startOfDay
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -58,18 +59,28 @@ fun EventForm(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val defaultStart = remember {
+        presetStartTime ?: run {
+            val cal = Calendar.getInstance().apply {
+                timeInMillis = selectedDay
+                val currentCal = Calendar.getInstance()
+                set(Calendar.HOUR_OF_DAY, currentCal.get(Calendar.HOUR_OF_DAY) + 1)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            cal.timeInMillis
+        }
+    }
     var title by remember { mutableStateOf(initial?.title ?: "") }
     var description by remember { mutableStateOf(initial?.description ?: "") }
-    var startTime by remember { mutableLongStateOf(initial?.startTime ?: (presetStartTime ?: selectedDay)) }
-    var endTime by remember { mutableLongStateOf(initial?.endTime ?: ((presetStartTime ?: selectedDay) + 3600_000L)) }
+    var startTime by remember { mutableLongStateOf(initial?.startTime ?: defaultStart) }
+    var endTime by remember { mutableLongStateOf(initial?.endTime ?: (defaultStart + 3600_000L)) }
     var reminder by remember { mutableStateOf((initial?.reminderMinutes ?: 30).toString()) }
     var selectedTagIds by remember { mutableStateOf(initial?.tagIds?.toSet() ?: emptySet()) }
     var endTimeEdited by remember { mutableStateOf(initial != null) }
     var allDay by remember {
-        mutableStateOf(
-            if (initial != null) (initial.endTime - initial.startTime) >= 24 * 3600_000L
-            else false
-        )
+        mutableStateOf(initial?.allDay ?: false)
     }
     var showTagSheet by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -126,16 +137,18 @@ fun EventForm(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TagChip(
+                                tag = tag,
+                                selected = tag.id in selectedTagIds,
+                                onClick = {
                                     selectedTagIds = selectedTagIds.toMutableSet().also {
                                         if (tag.id in it) it.remove(tag.id) else it.add(tag.id)
                                     }
                                 }
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            TagChip(tag = tag, selected = tag.id in selectedTagIds)
+                            )
                         }
                         HorizontalDivider()
                     }
@@ -183,9 +196,13 @@ fun EventForm(
 
         if (allDay) {
             OutlinedButton(
-                onClick = { pickDate(startTime) { startTime = it; endTime = it + 24 * 3600_000L } },
+                onClick = { pickDate(startTime) { startTime = it } },
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Data: ${formatDateOnly(startTime)}") }
+            ) { Text("Inizio: ${formatDateOnly(startTime)}") }
+            OutlinedButton(
+                onClick = { pickDate(endTime) { endTime = it } },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Fine: ${formatDateOnly(endTime)}") }
         } else {
             OutlinedButton(
                 onClick = { pickDate(startTime) { d -> pickTime(d) { startTime = it; autoEnd(it) } } },
@@ -221,13 +238,22 @@ fun EventForm(
             Button(
                 onClick = {
                     if (title.isBlank()) { error = "Titolo mancante"; return@Button }
+                    if (allDay && endTime < startTime) { error = "Fine deve essere uguale o dopo inizio"; return@Button }
                     if (!allDay && endTime <= startTime) { error = "Fine deve essere dopo inizio"; return@Button }
+                    val finalEndTime = if (allDay) {
+                        Calendar.getInstance().apply {
+                            timeInMillis = endTime
+                            set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59)
+                            set(Calendar.SECOND, 59); set(Calendar.MILLISECOND, 999)
+                        }.timeInMillis
+                    } else endTime
                     val event = EventModel(
                         id = initial?.id ?: 0,
                         title = title.trim(),
                         description = description.trim(),
                         startTime = startTime,
-                        endTime = if (allDay) startTime + 24 * 3600_000L else endTime,
+                        endTime = finalEndTime,
+                        allDay = allDay,
                         reminderMinutes = reminder.toIntOrNull() ?: 30
                     )
                     onSave(event, selectedTagIds.toList())

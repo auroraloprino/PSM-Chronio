@@ -50,7 +50,7 @@ fun DayView(
     onNext: () -> Unit
 ) {
     val tagsById = tags.associateBy { it.id }
-    val allDayEvents = events.filter { it.endTime - it.startTime >= 24 * 3600_000L }
+    val allDayEvents = events.filter { it.allDay }
     val timedEvents = events - allDayEvents.toSet()
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -114,11 +114,7 @@ fun DayView(
                 val hourEvents = timedEvents.filter { event ->
                     val startHour = java.util.Calendar.getInstance()
                         .apply { timeInMillis = event.startTime }.get(java.util.Calendar.HOUR_OF_DAY)
-                    if (isSameDay(event.startTime, selectedDay)) {
-                        startHour == hour
-                    } else if (eventSpansDay(event.startTime, event.endTime, selectedDay)) {
-                        hour == 0
-                    } else false
+                    eventSpansDay(event.startTime, event.endTime, selectedDay) && startHour == hour
                 }
                 Row(
                     modifier = Modifier

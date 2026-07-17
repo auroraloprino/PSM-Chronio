@@ -14,10 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.unibo.android.domain.models.EventModel
 import com.unibo.android.domain.models.TagModel
+import com.unibo.android.ui.utils.eventSpansDay
 import com.unibo.android.ui.utils.EventCard
 import com.unibo.android.ui.utils.formatDate
 import com.unibo.android.ui.utils.isSameDay
 import com.unibo.android.ui.utils.isSameWeek
+import com.unibo.android.ui.utils.startOfDay
 
 @Composable
 fun EventListView(
@@ -29,9 +31,22 @@ fun EventListView(
     weekEvents: List<EventModel> = emptyList()
 ) {
     val now = System.currentTimeMillis()
+    val todayStart = startOfDay(now)
     val isSelectedToday = isSameDay(selectedDay, now)
     val isSelectedThisWeek = isSameWeek(selectedDay, now) && !isSelectedToday
     val tagsById = tags.associateBy { it.id }
+
+    fun isAllDay(e: EventModel) = e.allDay
+    fun sortedEvents(list: List<EventModel>) = list.sortedWith(
+        compareByDescending<EventModel> { isAllDay(it) }.thenBy { it.startTime }
+    )
+
+    // Per ogni giorno da domani a +6gg, elenca gli eventi che coprono quel giorno
+    val weekByDay: List<Pair<Long, List<EventModel>>> = (1..6).mapNotNull { offset ->
+        val dayMs = todayStart + offset * 24 * 3600_000L
+        val dayEvents = sortedEvents(weekEvents.filter { eventSpansDay(it.startTime, it.endTime, dayMs) })
+        if (dayEvents.isEmpty()) null else dayMs to dayEvents
+    }
 
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -39,7 +54,7 @@ fun EventListView(
     ) {
         if (todayEvents.isNotEmpty()) {
             item { SectionHeader("Oggi") }
-            items(todayEvents) { event ->
+            items(sortedEvents(todayEvents)) { event ->
                 EventCard(
                     event = event,
                     tags = event.tagIds.mapNotNull { tagsById[it] },
@@ -49,14 +64,17 @@ fun EventListView(
             item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
         }
 
-        if (weekEvents.isNotEmpty()) {
+        if (weekByDay.isNotEmpty()) {
             item { SectionHeader("Questa settimana") }
-            items(weekEvents) { event ->
-                EventCard(
-                    event = event,
-                    tags = event.tagIds.mapNotNull { tagsById[it] },
-                    onClick = { onEventClick(event) }
-                )
+            weekByDay.forEach { (dayMs, dayEvents) ->
+                item { DaySubHeader(formatDate(dayMs)) }
+                items(dayEvents) { event ->
+                    EventCard(
+                        event = event,
+                        tags = event.tagIds.mapNotNull { tagsById[it] },
+                        onClick = { onEventClick(event) }
+                    )
+                }
             }
             item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
         }
@@ -94,5 +112,17 @@ private fun SectionHeader(title: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
+    )
+}
+
+@Composable
+private fun DaySubHeader(title: String) {
+    Text(
+        title,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 2.dp)
     )
 }

@@ -62,12 +62,23 @@ fun TagFilterRow(
     var query by remember { mutableStateOf("") }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
-    IconButton(onClick = { showSheet = true }) {
-        Icon(
-            Icons.Default.Menu,
-            contentDescription = "Tag",
-            tint = if (activeFilters.isNotEmpty()) MaterialTheme.colorScheme.primary
-                   else MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        IconButton(onClick = { showSheet = true }) {
+            Icon(
+                Icons.Default.Menu,
+                contentDescription = "Tag",
+                tint = if (activeFilters.isNotEmpty()) MaterialTheme.colorScheme.primary
+                       else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Text(
+            "Tag",
+            style = MaterialTheme.typography.labelLarge,
+            color = if (activeFilters.isNotEmpty()) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 

@@ -26,11 +26,28 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.unibo.android.domain.models.WeatherModel
 import com.unibo.android.ui.utils.dayTimestamp
 import com.unibo.android.ui.utils.daysInMonth
 import com.unibo.android.ui.utils.firstDayOfWeekInMonth
 import com.unibo.android.ui.utils.formatMonthYear
 import com.unibo.android.ui.utils.isSameDay
+import java.text.SimpleDateFormat
+import java.util.Locale
+
+private val dateFmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+
+private fun weatherIcon(code: Int): String = when (code) {
+    0 -> "☀️"
+    1, 2 -> "🌤️"
+    3 -> "☁️"
+    45, 48 -> "🌫️"
+    51, 53, 55, 61, 63, 65 -> "🌧️"
+    71, 73, 75, 77 -> "❄️"
+    80, 81, 82 -> "🌦️"
+    95, 96, 99 -> "⛈️"
+    else -> "🌡️"
+}
 
 private val DAY_LABELS = listOf("Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom")
 //TODO: magari mettere i numeri come costanti così evito i magic numbers.
@@ -44,7 +61,8 @@ fun MonthGrid(
     onDayClick: (Long) -> Unit,
     onDayDoubleClick: (Long) -> Unit = {},
     onPrev: () -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    weatherByDay: Map<String, WeatherModel> = emptyMap()
 ) {
     val days = daysInMonth(visibleMonth)
     val firstDow = firstDayOfWeekInMonth(visibleMonth)
