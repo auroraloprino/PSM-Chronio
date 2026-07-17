@@ -39,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -101,12 +100,6 @@ fun BoardScreen(
         vm.onColumnMove(from.index, to.index)
     }
 
-    val density = LocalDensity.current
-    // Zona vicino al bordo dello SCHERMO (non della colonna, che potrebbe essere in parte fuori
-    // vista e quindi irraggiungibile col dito): basta entrarci per puntare al vicino e avviare
-    // lo scroll automatico che lo porta in vista.
-    val edgeZonePx = with(density) { 56.dp.toPx() }
-
     fun neighborColumnId(sourceColumnId: Long, direction: Int): Long? {
         val idx = displayColumns.indexOfFirst { it.id == sourceColumnId }
         if (idx == -1) return null
@@ -124,18 +117,15 @@ fun BoardScreen(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val screenWidthPx = constraints.maxWidth.toFloat()
+        // Zona di attivazione basata su percentuale dello schermo (non un valore fisso in dp):
+        // raggiungere il bordo fisico con il pollice è scomodo/difficile, quindi la zona utile
+        // è ampia (28% da ogni lato) invece di richiedere di arrivare quasi al margine esatto.
+        val edgeZonePx = screenWidthPx * 0.28f
 
-        fun targetColumnFor(sourceColumnId: Long, position: Offset): Long {
-            val result = when {
-                position.x < edgeZonePx -> neighborColumnId(sourceColumnId, -1) ?: sourceColumnId
-                position.x > screenWidthPx - edgeZonePx -> neighborColumnId(sourceColumnId, 1) ?: sourceColumnId
-                else -> sourceColumnId
-            }
-            android.util.Log.d(
-                "DragDebug",
-                "x=${position.x} screenW=$screenWidthPx edge=$edgeZonePx source=$sourceColumnId -> target=$result"
-            )
-            return result
+        fun targetColumnFor(sourceColumnId: Long, position: Offset): Long = when {
+            position.x < edgeZonePx -> neighborColumnId(sourceColumnId, -1) ?: sourceColumnId
+            position.x > screenWidthPx - edgeZonePx -> neighborColumnId(sourceColumnId, 1) ?: sourceColumnId
+            else -> sourceColumnId
         }
 
         LaunchedEffect(cardDragState != null) {
