@@ -1,6 +1,5 @@
 package com.unibo.android.data.remote
 
-
 import com.unibo.android.data.BuildConfig
 import com.unibo.android.data.remote.model.UnsplashSearchResponse
 import okhttp3.OkHttpClient
@@ -9,13 +8,14 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.util.concurrent.TimeUnit
 
 interface UnsplashApi {
 
     @GET("search/photos")
     suspend fun searchPhotos(
         @Query("query") query: String,
-        @Query("per_page") perPage: Int = 10,
+        @Query("per_page") perPage: Int = 30,
         @Query("orientation") orientation: String = "landscape"
     ): UnsplashSearchResponse
 
@@ -30,14 +30,15 @@ interface UnsplashApi {
 
             val client = OkHttpClient.Builder()
                 .addInterceptor { chain ->
-                    // L'interceptor aggiunge la chiave a OGNI richiesta:
-                    // non devi ricordartene in ogni metodo dell'interfaccia.
+                    // La chiave viene aggiunta a ogni richiesta automaticamente.
                     val request = chain.request().newBuilder()
                         .addHeader("Authorization", "Client-ID ${BuildConfig.UNSPLASH_ACCESS_KEY}")
                         .build()
                     chain.proceed(request)
                 }
                 .addInterceptor(logging)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
                 .build()
 
             return Retrofit.Builder()

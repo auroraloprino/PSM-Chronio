@@ -1,10 +1,8 @@
 package com.unibo.android.data.remote.model
 
-import com.google.gson.annotations.SerializedName
-
 data class UnsplashSearchResponse(
-    val total: Int,
-    val results: List<UnsplashPhoto>
+    val total: Int = 0,
+    val results: List<UnsplashPhoto> = emptyList()
 )
 
 data class UnsplashPhoto(
@@ -14,18 +12,18 @@ data class UnsplashPhoto(
 )
 
 data class UnsplashUrls(
-    val raw: String,
-    val full: String,
-    val regular: String,
-    val small: String,
-    val thumb: String
+    val raw: String = "",
+    val full: String = "",
+    val regular: String = "",
+    val small: String = "",
+    val thumb: String = ""
 )
 
 data class UnsplashUser(
-    val name: String,
-    @SerializedName("links") val links: UnsplashUserLinks
+    val name: String = "",
+    val links: UnsplashUserLinks = UnsplashUserLinks()
 )
 
 data class UnsplashUserLinks(
-    val html: String
+    val html: String = ""
 )
