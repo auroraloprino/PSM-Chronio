@@ -26,6 +26,8 @@ import com.unibo.android.domain.usecases.SaveBoardUseCase
 import com.unibo.android.domain.usecases.SaveBoardUseCaseImpl
 import com.unibo.android.domain.usecases.SaveCardUseCase
 import com.unibo.android.domain.usecases.SaveCardUseCaseImpl
+import com.unibo.android.domain.usecases.SearchPhotosUseCase
+import com.unibo.android.domain.usecases.SearchPhotosUseCaseImpl
 
 object UseCasesProvider {
     lateinit var getBoardsUseCase: GetBoardsUseCase
@@ -41,6 +43,7 @@ object UseCasesProvider {
     lateinit var getBoardTagsUseCase: GetBoardTagsUseCase
     lateinit var saveBoardTagUseCase: SaveBoardTagUseCase
     lateinit var deleteBoardTagUseCase: DeleteBoardTagUseCase
+    lateinit var searchPhotosUseCase: SearchPhotosUseCase
 
     fun setup(repositoryProvider: RepositoryProvider) {
         getBoardsUseCase = GetBoardsUseCaseImpl(repositoryProvider.boardRepository)
@@ -56,5 +59,6 @@ object UseCasesProvider {
         getBoardTagsUseCase = GetBoardTagsUseCaseImpl(repositoryProvider.boardTagRepository)
         saveBoardTagUseCase = SaveBoardTagUseCaseImpl(repositoryProvider.boardTagRepository)
         deleteBoardTagUseCase = DeleteBoardTagUseCaseImpl(repositoryProvider.boardTagRepository)
+        searchPhotosUseCase = SearchPhotosUseCaseImpl(repositoryProvider.photoRepository)
     }
 }
