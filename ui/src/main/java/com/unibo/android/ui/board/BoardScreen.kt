@@ -1,10 +1,8 @@
 package com.unibo.android.ui.board
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -27,7 +25,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -51,21 +48,13 @@ import com.unibo.android.ui.board.dialogs.CardDialog
 import com.unibo.android.ui.board.dialogs.ColumnDialog
 import com.unibo.android.ui.board.dialogs.TagDialog
 import kotlin.math.roundToInt
-import kotlinx.coroutines.delay
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
-/**
- * Live state of a card being dragged. [targetColumnId]/[targetIndex] are recomputed on every
- * pointer move by hit-testing [Offset] against the currently known column/card bounds, so the
- * drop always lands exactly where previewed instead of always appending at the end.
- */
-private data class CardDragState(
+internal data class CardDragState(
     val card: CardModel,
     val sourceColumnId: Long,
-    val topLeftInRoot: Offset,
-    val targetColumnId: Long,
-    val targetIndex: Int
+    val topLeftInRoot: Offset
 )
 
 private sealed interface DialogState {
@@ -86,12 +75,12 @@ fun BoardScreen(
     vm: BoardViewModel = viewModel { BoardViewModel(boardId) }
 ) {
     val state by vm.uiState.collectAsState()
+    val draggingCards by vm.draggingCards.collectAsState()
     val draggingColumns by vm.draggingColumns.collectAsState()
 
     var dialog by remember { mutableStateOf<DialogState>(DialogState.None) }
     var cardDragState by remember { mutableStateOf<CardDragState?>(null) }
     val columnBounds = remember { mutableStateMapOf<Long, Rect>() }
-    val cardBounds = remember { mutableStateMapOf<Long, Rect>() }
 
     val displayColumns = draggingColumns
         ?: state.columns.map { it.column }
@@ -101,138 +90,105 @@ fun BoardScreen(
         vm.onColumnMove(from.index, to.index)
     }
 
-    fun targetFor(pointerInRoot: Offset, sourceColumnId: Long, draggedCardId: Long): Pair<Long, Int>? {
-        val hitColumnId = columnBounds.entries.firstOrNull { (_, rect) -> rect.contains(pointerInRoot) }?.key
-            ?: return null
-        val columnCards = (state.columns.find { it.column.id == hitColumnId }?.cards ?: emptyList())
-            .filterNot { it.id == draggedCardId }
-        val index = columnCards.indexOfFirst { c ->
-            val rect = cardBounds[c.id]
-            rect != null && pointerInRoot.y < (rect.top + rect.bottom) / 2f
-        }.let { if (it == -1) columnCards.size else it }
-        return hitColumnId to index
+    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(boardTitle) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Indietro")
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { dialog = DialogState.NewColumn },
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text("Colonna") }
+            )
+        }
+    ) { padding ->
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+
+            TagFilterRow(
+                tags = state.tags,
+                activeFilters = state.activeFilters,
+                onToggleFilter = vm::toggleFilter,
+                onClearFilters = vm::clearFilters,
+                onCreateTag = { dialog = DialogState.NewTag }
+            )
+
+            if (displayColumns.isEmpty()) {
+                EmptyBoardMessage(isFiltering = state.isFiltering)
+            } else {
+                LazyRow(
+                    state = lazyRowState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(displayColumns, key = { it.id }) { column ->
+                        ReorderableItem(reorderableRowState, key = column.id) { isDragging ->
+                            val elevation by animateDpAsState(
+                                targetValue = if (isDragging) 8.dp else 0.dp,
+                                label = "columnElevation"
+                            )
+
+                            val cards = draggingCards?.get(column.id)
+                                ?: state.columns.find { it.column.id == column.id }?.cards
+                                ?: emptyList()
+
+                            ColumnItem(
+                                column = column,
+                                cards = cards,
+                                columnDragHandleScope = this,  // scope per l'handle colonna
+                                onCardMove = { from, to -> vm.onCardMove(column.id, from, to) },
+                                onCardDragStopped = { vm.onCardDragStopped(column.id) },
+                                onCardClick = { dialog = DialogState.EditCard(it) },
+                                onAddCard = { dialog = DialogState.NewCard(column.id) },
+                                onRenameColumn = { dialog = DialogState.RenameColumn(column) },
+                                onDeleteColumn = { vm.deleteColumn(column) },
+                                isDropTarget = cardDragState != null &&
+                                    cardDragState?.sourceColumnId != column.id &&
+                                    columnBounds[column.id]?.contains(cardDragState!!.topLeftInRoot) == true,
+                                onColumnBoundsChanged = { rect -> columnBounds[column.id] = rect },
+                                onCardCrossColumnDrag = { card, rootPosition ->
+                                    cardDragState = if (rootPosition == null) {
+                                        val dropTargetId = columnBounds.entries.firstOrNull { (id, rect) ->
+                                            id != column.id && cardDragState != null &&
+                                                rect.contains(cardDragState!!.topLeftInRoot)
+                                        }?.key
+                                        if (dropTargetId != null) {
+                                            vm.moveCardToColumn(card, dropTargetId)
+                                        }
+                                        null
+                                    } else {
+                                        CardDragState(card, column.id, rootPosition)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxHeight()
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val screenWidthPx = constraints.maxWidth.toFloat()
-
-        LaunchedEffect(cardDragState != null) {
-            while (cardDragState != null) {
-                val x = cardDragState?.topLeftInRoot?.x
-                val edge = 96f
-                when {
-                    x != null && x < edge -> lazyRowState.scrollBy(-24f)
-                    x != null && x > screenWidthPx - edge -> lazyRowState.scrollBy(24f)
+    cardDragState?.let { dragState ->
+        Box(
+            modifier = Modifier
+                .offset {
+                    IntOffset(dragState.topLeftInRoot.x.roundToInt(), dragState.topLeftInRoot.y.roundToInt())
                 }
-                delay(16)
-            }
+                .width(260.dp)
+                .graphicsLayer { alpha = 0.85f; shadowElevation = 16f }
+        ) {
+            CardItem(card = dragState.card, onClick = {})
         }
-
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(boardTitle) },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Indietro")
-                        }
-                    }
-                )
-            },
-            floatingActionButton = {
-                ExtendedFloatingActionButton(
-                    onClick = { dialog = DialogState.NewColumn },
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = { Text("Colonna") }
-                )
-            }
-        ) { padding ->
-            Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-
-                TagFilterRow(
-                    tags = state.tags,
-                    activeFilters = state.activeFilters,
-                    onToggleFilter = vm::toggleFilter,
-                    onClearFilters = vm::clearFilters,
-                    onCreateTag = { dialog = DialogState.NewTag }
-                )
-
-                if (displayColumns.isEmpty()) {
-                    EmptyBoardMessage(isFiltering = state.isFiltering)
-                } else {
-                    LazyRow(
-                        state = lazyRowState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(displayColumns, key = { it.id }) { column ->
-                            ReorderableItem(reorderableRowState, key = column.id) { isDragging ->
-                                val elevation by animateDpAsState(
-                                    targetValue = if (isDragging) 8.dp else 0.dp,
-                                    label = "columnElevation"
-                                )
-
-                                val cards = state.columns.find { it.column.id == column.id }?.cards
-                                    ?: emptyList()
-
-                                val dragState = cardDragState
-
-                                ColumnItem(
-                                    column = column,
-                                    cards = cards,
-                                    columnDragHandleScope = this,  // scope per l'handle colonna
-                                    onCardClick = { dialog = DialogState.EditCard(it) },
-                                    onAddCard = { dialog = DialogState.NewCard(column.id) },
-                                    onRenameColumn = { dialog = DialogState.RenameColumn(column) },
-                                    onDeleteColumn = { vm.deleteColumn(column) },
-                                    draggedCardId = dragState?.card?.id,
-                                    dropPreviewIndex = if (dragState?.targetColumnId == column.id) dragState.targetIndex else null,
-                                    onColumnBoundsChanged = { rect -> columnBounds[column.id] = rect },
-                                    onCardBoundsChanged = { cardId, rect -> cardBounds[cardId] = rect },
-                                    onCardDragStart = { card, originInRoot ->
-                                        val target = targetFor(originInRoot, column.id, card.id)
-                                            ?: (column.id to cards.indexOfFirst { it.id == card.id })
-                                        cardDragState = CardDragState(card, column.id, originInRoot, target.first, target.second)
-                                    },
-                                    onCardDrag = { positionInRoot ->
-                                        cardDragState?.let { current ->
-                                            val target = targetFor(positionInRoot, current.sourceColumnId, current.card.id)
-                                                ?: (current.targetColumnId to current.targetIndex)
-                                            cardDragState = current.copy(
-                                                topLeftInRoot = positionInRoot,
-                                                targetColumnId = target.first,
-                                                targetIndex = target.second
-                                            )
-                                        }
-                                    },
-                                    onCardDragEnd = {
-                                        cardDragState?.let { final ->
-                                            vm.moveCard(final.card, final.targetColumnId, final.targetIndex)
-                                        }
-                                        cardDragState = null
-                                    },
-                                    modifier = Modifier.fillMaxHeight()
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        cardDragState?.let { dragState ->
-            Box(
-                modifier = Modifier
-                    .offset {
-                        IntOffset(dragState.topLeftInRoot.x.roundToInt(), dragState.topLeftInRoot.y.roundToInt())
-                    }
-                    .width(260.dp)
-                    .graphicsLayer { alpha = 0.85f; shadowElevation = 16f }
-            ) {
-                CardItem(card = dragState.card, onClick = {})
-            }
-        }
+    }
     }
 
     when (val d = dialog) {
