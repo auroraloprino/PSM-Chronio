@@ -1,7 +1,11 @@
 package com.unibo.android.ui.calendar
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -18,21 +22,31 @@ import com.unibo.android.ui.utils.formatDate
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DayEventsSheet(
+    visible: Boolean,
     selectedDay: Long,
     events: List<EventModel>,
     tags: List<TagModel>,
     onEventClick: (EventModel) -> Unit,
     onDismiss: () -> Unit
 ) {
+    if (!visible) return
+    val tagsById = tags.associateBy { it.id }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .wrapContentHeight()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Text(
                 formatDate(selectedDay),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 4.dp)
             )
             if (events.isEmpty()) {
                 Text(
@@ -41,8 +55,14 @@ fun DayEventsSheet(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                events.forEach { event ->
-                    EventCard(event = event, tags = tags, onClick = { onEventClick(event) })
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(events) { event ->
+                        EventCard(
+                            event = event,
+                            tags = event.tagIds.mapNotNull { tagsById[it] },
+                            onClick = { onEventClick(event) }
+                        )
+                    }
                 }
             }
         }
