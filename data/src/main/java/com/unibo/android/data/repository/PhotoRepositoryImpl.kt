@@ -23,7 +23,6 @@ class PhotoRepositoryImpl(
             val response = api.searchPhotos(query)
             Result.success(response.results.map { it.toModel() })
         } catch (e: HttpException) {
-            // Traduciamo i codici HTTP in messaggi comprensibili
             val message = when (e.code()) {
                 401 -> "Chiave Unsplash non valida."
                 403 -> "Limite di richieste raggiunto (50/ora). Riprova più tardi."
