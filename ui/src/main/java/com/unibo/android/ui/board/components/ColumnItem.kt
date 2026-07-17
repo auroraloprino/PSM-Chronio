@@ -1,19 +1,20 @@
 package com.unibo.android.ui.board.components
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
@@ -45,35 +47,30 @@ import androidx.compose.ui.unit.dp
 import com.unibo.android.domain.models.CardModel
 import com.unibo.android.domain.models.ColumnModel
 import sh.calvin.reorderable.ReorderableCollectionItemScope
-import sh.calvin.reorderable.ReorderableItem
-import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun ColumnItem(
     column: ColumnModel,
     cards: List<CardModel>,
-    onCardMove: (from: Int, to: Int) -> Unit,
-    onCardDragStopped: () -> Unit,
     onCardClick: (CardModel) -> Unit,
     onAddCard: () -> Unit,
     onRenameColumn: () -> Unit,
     onDeleteColumn: () -> Unit,
     modifier: Modifier = Modifier,
     columnDragHandleScope: ReorderableCollectionItemScope? = null,
-    isDropTarget: Boolean = false,
-    onColumnBoundsChanged: (Rect) -> Unit = {},
-    onCardCrossColumnDrag: (card: CardModel, rootPosition: Offset?) -> Unit = { _, _ -> }
+    draggedCardId: Long? = null,
+    dropPreviewIndex: Int? = null,
+    onCardBoundsChanged: (cardId: Long, Rect) -> Unit = { _, _ -> },
+    onCardDragStart: (card: CardModel, originInRoot: Offset) -> Unit = { _, _ -> },
+    onCardDrag: (positionInRoot: Offset) -> Unit = {},
+    onCardDragEnd: () -> Unit = {}
 ) {
     val lazyListState = rememberLazyListState()
-
-    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        onCardMove(from.index, to.index)
-    }
+    val isDropTarget = dropPreviewIndex != null
 
     Surface(
         modifier = modifier
             .width(280.dp)
-            .onGloballyPositioned { onColumnBoundsChanged(it.boundsInRoot()) }
             .then(
                 if (isDropTarget)
                     Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
@@ -131,62 +128,64 @@ fun ColumnItem(
                 }
             }
 
+            val displayCards = cards.filterNot { it.id == draggedCardId }
+
             LazyColumn(
                 state = lazyListState,
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(cards, key = { it.id }) { card ->
-                    ReorderableItem(reorderableState, key = card.id) { isDragging ->
-                        val elevation by animateDpAsState(
-                            targetValue = if (isDragging) 8.dp else 1.dp,
-                            label = "cardElevation"
-                        )
-                        var rowCoordinates by remember(card.id) {
-                            mutableStateOf<LayoutCoordinates?>(null)
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .onGloballyPositioned { rowCoordinates = it }
-                                .pointerInput(card.id) {
-                                    var currentPosition = Offset.Zero
-                                    detectDragGesturesAfterLongPress(
-                                        onDragStart = {
-                                            currentPosition = rowCoordinates?.positionInRoot() ?: Offset.Zero
-                                            onCardCrossColumnDrag(card, currentPosition)
-                                        },
-                                        onDrag = { change, dragAmount ->
-                                            change.consume()
-                                            currentPosition += dragAmount
-                                            onCardCrossColumnDrag(card, currentPosition)
-                                        },
-                                        onDragEnd = { onCardCrossColumnDrag(card, null) },
-                                        onDragCancel = { onCardCrossColumnDrag(card, null) }
-                                    )
-                                }
-                        ) {
-                            CardItem(
-                                card = card,
-                                onClick = { onCardClick(card) },
-                                elevation = elevation,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(
-                                onClick = {},
-                                modifier = Modifier.draggableHandle(
-                                    onDragStopped = { onCardDragStopped() }
-                                )
-                            ) {
-                                Icon(
-                                    Icons.Rounded.DragHandle,
-                                    contentDescription = "Trascina card",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                // Iteriamo sulla lista intera (non filtrata): rimuovere la card trascinata dalla
+                // lista distruggerebbe il suo composable a metà gesto, interrompendo il drag
+                // (il gesto in corso verrebbe cancellato). La rendiamo invece invisibile.
+                itemsIndexed(cards, key = { _, c -> c.id }) { _, card ->
+                    val isDragged = card.id == draggedCardId
+                    val visualIndex = if (isDragged) -1 else displayCards.indexOf(card)
+
+                    if (!isDragged && dropPreviewIndex == visualIndex) {
+                        DropPlaceholder()
+                    }
+
+                    var cardCoordinates by remember(card.id) {
+                        mutableStateOf<LayoutCoordinates?>(null)
+                    }
+
+                    CardItem(
+                        card = card,
+                        // Il tap è gestito a mano sotto (detectTapGestures), insieme al drag,
+                        // per evitare che il click interno di Card competa con il trascinamento.
+                        onClick = {},
+                        modifier = Modifier
+                            .alpha(if (isDragged) 0f else 1f)
+                            .onGloballyPositioned {
+                                cardCoordinates = it
+                                onCardBoundsChanged(card.id, it.boundsInRoot())
+                            }
+                            .pointerInput(card.id) {
+                                detectTapGestures(onTap = { onCardClick(card) })
+                            }
+                            .pointerInput(card.id) {
+                                var current = Offset.Zero
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = {
+                                        current = cardCoordinates?.positionInRoot() ?: Offset.Zero
+                                        onCardDragStart(card, current)
+                                    },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        current += dragAmount
+                                        onCardDrag(current)
+                                    },
+                                    onDragEnd = { onCardDragEnd() },
+                                    onDragCancel = { onCardDragEnd() }
                                 )
                             }
-                        }
-                    }
+                    )
+                }
+
+                if (dropPreviewIndex == displayCards.size) {
+                    item { DropPlaceholder() }
                 }
 
                 item {
@@ -201,4 +200,18 @@ fun ColumnItem(
             }
         }
     }
+}
+
+@Composable
+private fun DropPlaceholder() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .border(
+                width = 2.dp,
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(8.dp)
+            )
+    )
 }
