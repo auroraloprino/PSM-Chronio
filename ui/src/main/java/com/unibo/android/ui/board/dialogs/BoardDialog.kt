@@ -36,16 +36,22 @@ import com.unibo.android.ui.board.components.PhotoPickerSheet
 @Composable
 fun BoardDialog(
     onConfirm: (title: String, description: String, coverImageUrl: String?) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    initialTitle: String = "",
+    initialDescription: String = "",
+    initialCoverImageUrl: String? = null,
+    isEditing: Boolean = false,
+    onDelete: (() -> Unit)? = null
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var coverUrl by remember { mutableStateOf<String?>(null) }
+    var title by remember { mutableStateOf(initialTitle) }
+    var description by remember { mutableStateOf(initialDescription) }
+    var coverUrl by remember { mutableStateOf(initialCoverImageUrl) }
     var showPhotoPicker by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuova bacheca") },
+        title = { Text(if (isEditing) "Modifica bacheca" else "Nuova bacheca") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -108,10 +114,17 @@ fun BoardDialog(
             TextButton(
                 onClick = { onConfirm(title, description, coverUrl) },
                 enabled = title.isNotBlank()
-            ) { Text("Crea") }
+            ) { Text(if (isEditing) "Salva" else "Crea") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Annulla") }
+            Column {
+                TextButton(onClick = onDismiss) { Text("Annulla") }
+                if (isEditing && onDelete != null) {
+                    TextButton(onClick = { showDeleteConfirm = true }) {
+                        Text("Elimina", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
         }
     )
 
@@ -123,6 +136,24 @@ fun BoardDialog(
                 showPhotoPicker = false
             },
             onDismiss = { showPhotoPicker = false }
+        )
+    }
+
+    if (showDeleteConfirm && onDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Eliminare la bacheca?") },
+            text = {
+                Text("Verranno eliminate anche tutte le colonne e le card al suo interno. L'operazione non è reversibile.")
+            },
+            confirmButton = {
+                TextButton(onClick = onDelete) {
+                    Text("Elimina", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Annulla") }
+            }
         )
     }
 }

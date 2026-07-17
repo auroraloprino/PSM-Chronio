@@ -1,6 +1,8 @@
 package com.unibo.android.ui.boardlist
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +47,7 @@ fun BoardListScreen(
 ) {
     val boards by vm.boards.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+    var editingBoard by remember { mutableStateOf<BoardModel?>(null) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Bacheche") }) },
@@ -72,7 +75,11 @@ fun BoardListScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(boards, key = { it.id }) { board ->
-                    BoardCard(board = board, onClick = { onBoardClick(board) })
+                    BoardCard(
+                        board = board,
+                        onClick = { onBoardClick(board) },
+                        onLongClick = { editingBoard = board }
+                    )
                 }
             }
         }
@@ -87,12 +94,34 @@ fun BoardListScreen(
             onDismiss = { showDialog = false }
         )
     }
+
+    editingBoard?.let { board ->
+        BoardDialog(
+            initialTitle = board.title,
+            initialDescription = board.description,
+            initialCoverImageUrl = board.coverImageUrl,
+            isEditing = true,
+            onConfirm = { title, desc, coverUrl ->
+                vm.updateBoard(board, title, desc, coverUrl)
+                editingBoard = null
+            },
+            onDismiss = { editingBoard = null },
+            onDelete = {
+                vm.deleteBoard(board)
+                editingBoard = null
+            }
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BoardCard(board: BoardModel, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+private fun BoardCard(board: BoardModel, onClick: () -> Unit, onLongClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+    ) {
         Column {
             if (board.coverImageUrl != null) {
                 AsyncImage(

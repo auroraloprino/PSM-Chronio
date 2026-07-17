@@ -24,4 +24,19 @@ class BoardListViewModel : ViewModel() {
                 )
             )
         }
+
+    fun updateBoard(board: BoardModel, title: String, description: String, coverImageUrl: String?) =
+        viewModelScope.launch {
+            UseCasesProvider.saveBoardUseCase(
+                board.copy(
+                    title = title,
+                    description = description,
+                    coverImageUrl = coverImageUrl
+                )
+            )
+        }
+
+    fun deleteBoard(board: BoardModel) = viewModelScope.launch {
+        UseCasesProvider.deleteBoardUseCase(board)
+    }
 }

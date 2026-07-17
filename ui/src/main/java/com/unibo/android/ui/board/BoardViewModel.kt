@@ -38,9 +38,6 @@ class BoardViewModel(
     private val activeFilters = MutableStateFlow<Set<Long>>(emptySet())
     private val filterMode = MutableStateFlow(FilterMode.OR)
 
-    private val _draggingCards = MutableStateFlow<Map<Long, List<CardModel>>?>(null)
-    val draggingCards: StateFlow<Map<Long, List<CardModel>>?> = _draggingCards
-
     private val _draggingColumns = MutableStateFlow<List<ColumnModel>?>(null)
     val draggingColumns: StateFlow<List<ColumnModel>?> = _draggingColumns
 
@@ -90,24 +87,21 @@ class BoardViewModel(
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BoardUiState())
 
-    fun onCardMove(columnId: Long, fromIndex: Int, toIndex: Int) {
-        val current = _draggingCards.value?.get(columnId)
-            ?: uiState.value.columns.find { it.column.id == columnId }?.cards
-            ?: return
-
-        val mutated = current.toMutableList().apply {
-            if (fromIndex in indices && toIndex in 0..size) {
-                add(toIndex, removeAt(fromIndex))
-            }
+    /**
+     * Moves [card] so that it lands at [targetIndex] within [targetColumnId]'s card list
+     * (same column for a local reorder, different column for a cross-column move).
+     */
+    fun moveCard(card: CardModel, targetColumnId: Long, targetIndex: Int) = viewModelScope.launch {
+        val targetCards = uiState.value.columns.find { it.column.id == targetColumnId }?.cards
+            ?.filterNot { it.id == card.id }
+            ?: emptyList()
+        val reordered = targetCards.toMutableList().apply {
+            add(targetIndex.coerceIn(0, size), card)
         }
-        _draggingCards.value = (_draggingCards.value ?: emptyMap()) + (columnId to mutated)
-    }
-
-    fun onCardDragStopped(columnId: Long) {
-        val finalOrder = _draggingCards.value?.get(columnId) ?: return
-        viewModelScope.launch {
-            UseCasesProvider.moveCardUseCase.reorderWithinColumn(finalOrder)
-            _draggingCards.value = null
+        if (card.columnId == targetColumnId) {
+            UseCasesProvider.moveCardUseCase.reorderWithinColumn(reordered)
+        } else {
+            UseCasesProvider.moveCardUseCase.moveToColumnAtPosition(card, targetColumnId, reordered)
         }
     }
 
@@ -151,9 +145,6 @@ class BoardViewModel(
 
     fun saveCard(card: CardModel, tagIds: List<Long>) = viewModelScope.launch {
         UseCasesProvider.saveCardUseCase(card, tagIds)
-    }
-    fun moveCardToColumn(card: CardModel, targetColumnId: Long) = viewModelScope.launch {
-        UseCasesProvider.moveCardUseCase.moveToColumn(card, targetColumnId)
     }
     fun deleteCard(card: CardModel) = viewModelScope.launch {
         UseCasesProvider.deleteCardUseCase(card)
