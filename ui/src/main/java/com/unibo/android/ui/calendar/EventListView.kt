@@ -31,6 +31,7 @@ fun EventListView(
     val now = System.currentTimeMillis()
     val isSelectedToday = isSameDay(selectedDay, now)
     val isSelectedThisWeek = isSameWeek(selectedDay, now) && !isSelectedToday
+    val tagsById = tags.associateBy { it.id }
 
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -39,7 +40,11 @@ fun EventListView(
         if (todayEvents.isNotEmpty()) {
             item { SectionHeader("Oggi") }
             items(todayEvents) { event ->
-                EventCard(event = event, tags = tags.filter { it.id > 0 }, onClick = { onEventClick(event) })
+                EventCard(
+                    event = event,
+                    tags = event.tagIds.mapNotNull { tagsById[it] },
+                    onClick = { onEventClick(event) }
+                )
             }
             item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
         }
@@ -47,8 +52,13 @@ fun EventListView(
         if (weekEvents.isNotEmpty()) {
             item { SectionHeader("Questa settimana") }
             items(weekEvents) { event ->
-                EventCard(event = event, tags = tags.filter { it.id > 0 }, onClick = { onEventClick(event) })
+                EventCard(
+                    event = event,
+                    tags = event.tagIds.mapNotNull { tagsById[it] },
+                    onClick = { onEventClick(event) }
+                )
             }
+            item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
         }
 
         if (!isSelectedToday && !isSelectedThisWeek) {
@@ -64,7 +74,11 @@ fun EventListView(
                 }
             } else {
                 items(events) { event ->
-                    EventCard(event = event, tags = tags.filter { it.id > 0 }, onClick = { onEventClick(event) })
+                    EventCard(
+                        event = event,
+                        tags = event.tagIds.mapNotNull { tagsById[it] },
+                        onClick = { onEventClick(event) }
+                    )
                 }
             }
         }

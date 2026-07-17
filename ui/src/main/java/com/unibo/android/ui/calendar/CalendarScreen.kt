@@ -31,6 +31,7 @@ import com.unibo.android.ui.utils.TagFilterRow
 import com.unibo.android.ui.utils.addDays
 import com.unibo.android.ui.utils.isSameDay
 import com.unibo.android.ui.utils.isSameWeek
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +40,10 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showDrawer by remember { mutableStateOf(false) }
     var showForm by remember { mutableStateOf(false) }
+    var presetStartTime by remember { mutableStateOf<Long?>(null) }
     var showDaySheet by remember { mutableStateOf(false) }
+    var showTagManager by remember { mutableStateOf(false) }
+    var tagToEdit by remember { mutableStateOf<com.unibo.android.domain.models.TagModel?>(null) }
 
     val tabs = listOf("Mese", "Settimana", "Giorno")
     val tabIndex = when (state.calendarView) {
@@ -49,8 +53,14 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
     }
 
     val now = System.currentTimeMillis()
-    val todayEvents = state.events.filter { isSameDay(it.startTime, now) }
-    val weekEvents = state.events.filter { isSameWeek(it.startTime, now) && !isSameDay(it.startTime, now) && it.startTime > now }
+    val filteredEvents = if (state.activeFilters.isEmpty()) state.events
+        else state.events.filter { event ->
+            val noTagActive = CalendarViewModel.NO_TAG_FILTER_ID in state.activeFilters
+            val tagFilters = state.activeFilters - CalendarViewModel.NO_TAG_FILTER_ID
+            (noTagActive && event.tagIds.isEmpty()) || tagFilters.any { it in event.tagIds }
+        }
+    val todayEvents = filteredEvents.filter { isSameDay(it.startTime, now) }
+    val weekEvents = filteredEvents.filter { isSameWeek(it.startTime, now) && !isSameDay(it.startTime, now) && it.startTime > now }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -101,7 +111,11 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
                         TagFilterRow(
                             tags = state.tags,
                             activeFilters = state.activeFilters,
-                            onToggle = { vm.toggleFilter(it) }
+                            onToggle = { vm.toggleFilter(it) },
+                            onEdit = { tagToEdit = it; showTagManager = true },
+                            onDelete = { vm.deleteTag(it) },
+                            onCreateNew = { tagToEdit = null; showTagManager = true },
+                            noTagFilterId = CalendarViewModel.NO_TAG_FILTER_ID
                         )
                         EventListView(
                             selectedDay = state.selectedDay,
@@ -117,7 +131,20 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
                             visibleWeek = state.visibleWeek,
                             selectedDay = state.selectedDay,
                             events = vm.eventsForWeek(state.visibleWeek),
+                            tags = state.tags,
                             onDayClick = { vm.selectDay(it) },
+                            onSlotClick = { dayMs, hour ->
+                                val cal = Calendar.getInstance().apply {
+                                    timeInMillis = dayMs
+                                    set(Calendar.HOUR_OF_DAY, hour)
+                                    set(Calendar.MINUTE, 0)
+                                    set(Calendar.SECOND, 0)
+                                    set(Calendar.MILLISECOND, 0)
+                                }
+                                vm.selectEvent(null)
+                                presetStartTime = cal.timeInMillis
+                                showForm = true
+                            },
                             onEventClick = { vm.selectEvent(it); showForm = true },
                             onPrev = { vm.prevWeek() },
                             onNext = { vm.nextWeek() }
@@ -127,7 +154,20 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
                         DayView(
                             selectedDay = state.selectedDay,
                             events = vm.eventsForSelectedDay(),
+                            tags = state.tags,
                             onEventClick = { vm.selectEvent(it); showForm = true },
+                            onSlotClick = { hour ->
+                                val cal = Calendar.getInstance().apply {
+                                    timeInMillis = state.selectedDay
+                                    set(Calendar.HOUR_OF_DAY, hour)
+                                    set(Calendar.MINUTE, 0)
+                                    set(Calendar.SECOND, 0)
+                                    set(Calendar.MILLISECOND, 0)
+                                }
+                                vm.selectEvent(null)
+                                presetStartTime = cal.timeInMillis
+                                showForm = true
+                            },
                             onPrev = { vm.selectDay(addDays(state.selectedDay, -1)) },
                             onNext = { vm.selectDay(addDays(state.selectedDay, 1)) }
                         )
@@ -136,33 +176,43 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
             }
 
             if (showForm) {
-                ModalBottomSheet(onDismissRequest = { showForm = false }, sheetState = sheetState) {
+                ModalBottomSheet(onDismissRequest = { showForm = false; presetStartTime = null }, sheetState = sheetState) {
                     EventForm(
                         initial = state.selectedEvent,
                         tags = state.tags,
                         selectedDay = state.selectedDay,
+                        presetStartTime = presetStartTime,
                         onSave = { event, tagIds ->
                             if (state.selectedEvent == null) vm.saveEvent(event, tagIds)
                             else vm.updateEvent(event, tagIds)
-                            showForm = false
+                            showForm = false; presetStartTime = null
                         },
-                        onDelete = { vm.deleteEvent(it); showForm = false },
-                        onDismiss = { showForm = false }
+                        onDelete = { vm.deleteEvent(it); showForm = false; presetStartTime = null },
+                        onDismiss = { showForm = false; presetStartTime = null }
                     )
                 }
             }
 
-            if (showDaySheet) {
-                DayEventsSheet(
-                    selectedDay = state.selectedDay,
-                    events = vm.eventsForDay(state.selectedDay),
-                    tags = state.tags,
-                    onEventClick = { vm.selectEvent(it); showDaySheet = false; showForm = true },
-                    onDismiss = { showDaySheet = false }
-                )
-            }
+            DayEventsSheet(
+                visible = showDaySheet,
+                selectedDay = state.selectedDay,
+                events = vm.eventsForDay(state.selectedDay),
+                tags = state.tags,
+                onEventClick = { vm.selectEvent(it); showDaySheet = false; showForm = true },
+                onDismiss = { showDaySheet = false }
+            )
         }
 
         Sidebar(visible = showDrawer, onClose = { showDrawer = false })
+
+        TagManagerSheet(
+            visible = showTagManager,
+            tags = state.tags,
+            initialTag = tagToEdit,
+            onSave = { vm.saveTag(it) },
+            onUpdate = { vm.updateTag(it) },
+            onDelete = { vm.deleteTag(it) },
+            onDismiss = { showTagManager = false; tagToEdit = null }
+        )
     }
 }
