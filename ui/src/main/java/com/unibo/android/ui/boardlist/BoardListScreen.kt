@@ -1,5 +1,6 @@
 package com.unibo.android.ui.boardlist
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,8 +80,8 @@ fun BoardListScreen(
 
     if (showDialog) {
         BoardDialog(
-            onConfirm = { title, desc ->
-                vm.createBoard(title, desc)
+            onConfirm = { title, desc, coverUrl ->
+                vm.createBoard(title, desc, coverUrl)
                 showDialog = false
             },
             onDismiss = { showDialog = false }
@@ -101,11 +102,21 @@ private fun BoardCard(board: BoardModel, onClick: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(140.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
             }
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(board.title, style = MaterialTheme.typography.titleMedium)
-                // ...
+                if (board.description.isNotBlank()) {
+                    Text(
+                        board.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
         }
     }

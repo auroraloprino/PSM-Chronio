@@ -15,7 +15,7 @@ import com.unibo.android.domain.repositories.PhotoRepository
 import com.unibo.android.data.remote.UnsplashApi
 
 class RepositoryProviderImpl(context: Context) : RepositoryProvider {
-    override val boardRepository: BoardRepository = BoardRepositoryImpl(context, UnsplashApi.create())
+    override val boardRepository: BoardRepository = BoardRepositoryImpl(context)
     override val columnRepository: ColumnRepository = ColumnRepositoryImpl(context)
     override val cardRepository: CardRepository = CardRepositoryImpl(context)
     override val boardTagRepository: BoardTagRepository = BoardTagRepositoryImpl(context)

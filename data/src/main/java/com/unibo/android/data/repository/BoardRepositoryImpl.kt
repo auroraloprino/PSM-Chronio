@@ -5,14 +5,11 @@ import com.unibo.android.data.local.db.ChronioDatabase
 import com.unibo.android.data.local.entity.BoardEntity
 import com.unibo.android.domain.models.BoardModel
 import com.unibo.android.domain.repositories.BoardRepository
-import com.unibo.android.data.remote.UnsplashApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class BoardRepositoryImpl(
-    context: Context,
-    private val unsplash: UnsplashApi
-): BoardRepository {
+class BoardRepositoryImpl(context: Context) : BoardRepository {
+
     private val boardDao = ChronioDatabase.getInstance(context).boardDao()
 
     override fun observeBoards(): Flow<List<BoardModel>> =
@@ -21,13 +18,8 @@ class BoardRepositoryImpl(
     override suspend fun getById(id: Long): BoardModel? =
         boardDao.getById(id)?.toModel()
 
-    override suspend fun save(board: BoardModel): Long {
-        val withCover = if (board.coverImageUrl == null) {
-            board.copy(coverImageUrl = fetchCover(board.title))
-        } else board
-
-        return boardDao.insert(withCover.toEntity())
-    }
+    override suspend fun save(board: BoardModel): Long =
+        boardDao.insert(board.toEntity())
 
     override suspend fun update(board: BoardModel) =
         boardDao.update(board.toEntity())
@@ -40,8 +32,4 @@ class BoardRepositoryImpl(
 
     private fun BoardModel.toEntity() =
         BoardEntity(id, title, description, coverImageUrl, createdAt)
-
-    private suspend fun fetchCover(query: String): String? = runCatching {
-        unsplash.searchPhotos(query).results.firstOrNull()?.urls?.regular
-    }.getOrNull()
 }
