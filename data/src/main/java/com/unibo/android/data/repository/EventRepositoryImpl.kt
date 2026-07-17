@@ -34,6 +34,6 @@ class EventRepositoryImpl(context: Context) : EventRepository {
         tagIds.forEach { eventDao.insertCrossRef(EventTagCrossRef(eventId, it)) }
     }
 
-    private fun EventWithTags.toModel() = EventModel(event.id, event.title, event.description, event.startTime, event.endTime, event.reminderMinutes, tags.map { it.id })
-    private fun EventModel.toEntity() = EventEntity(id, title, description, startTime, endTime, reminderMinutes)
+    private fun EventWithTags.toModel() = EventModel(event.id, event.title, event.description, event.startTime, event.endTime, event.allDay, event.reminderMinutes, tags.map { it.id })
+    private fun EventModel.toEntity() = EventEntity(id, title, description, startTime, endTime, allDay, reminderMinutes)
 }
