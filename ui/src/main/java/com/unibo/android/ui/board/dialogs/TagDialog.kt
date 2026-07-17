@@ -24,7 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.unibo.android.ui.board.components.toColorOrDefault
-//import com.unibo.android.ui.theme.TagColors
+import com.unibo.android.ui.theme.TagColors
 
 @Composable
 fun TagDialog(
@@ -32,7 +32,7 @@ fun TagDialog(
     onDismiss: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    //var selectedColor by remember { mutableStateOf(TagColors.first()) }
+    var selectedColor by remember { mutableStateOf(TagColors.first()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
