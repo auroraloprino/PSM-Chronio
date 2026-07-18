@@ -76,8 +76,7 @@ fun EventCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val visibleTags = if (tags.size > 1) tags.take(1) else tags
-                        visibleTags.forEach { tag ->
+                        tags.forEach { tag ->
                             val tagColor = runCatching {
                                 Color(android.graphics.Color.parseColor(tag.color))
                             }.getOrDefault(accentColor)
@@ -97,13 +96,6 @@ fun EventCard(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                        }
-                        if (tags.size > 1) {
-                            Text(
-                                "...",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
                     }
                 }
