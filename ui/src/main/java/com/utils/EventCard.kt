@@ -38,7 +38,7 @@ fun EventCard(
     val accentColor = tags.firstOrNull()?.let {
         runCatching { Color(android.graphics.Color.parseColor(it.color)) }.getOrNull()
     } ?: Color(android.graphics.Color.parseColor(DEFAULT_TAG_COLOR))
-    val isAllDay = (event.endTime - event.startTime) >= 24 * 3600_000L
+    val isAllDay = event.allDay
 
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
@@ -77,7 +77,8 @@ fun EventCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        tags.forEach { tag ->
+                        val visibleTags = if (tags.size > 1) tags.take(1) else tags
+                        visibleTags.forEach { tag ->
                             val tagColor = runCatching {
                                 Color(android.graphics.Color.parseColor(tag.color))
                             }.getOrDefault(accentColor)
@@ -97,6 +98,13 @@ fun EventCard(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                        }
+                        if (tags.size > 1) {
+                            Text(
+                                "...",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }

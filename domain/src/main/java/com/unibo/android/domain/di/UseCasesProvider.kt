@@ -10,12 +10,16 @@ import com.unibo.android.domain.usecases.GetEventsUseCase
 import com.unibo.android.domain.usecases.GetEventsUseCaseImpl
 import com.unibo.android.domain.usecases.GetTagsUseCase
 import com.unibo.android.domain.usecases.GetTagsUseCaseImpl
+import com.unibo.android.domain.usecases.GetWeatherUseCase
+import com.unibo.android.domain.usecases.GetWeatherUseCaseImpl
 import com.unibo.android.domain.usecases.SaveEventUseCase
 import com.unibo.android.domain.usecases.SaveEventUseCaseImpl
 import com.unibo.android.domain.usecases.SaveTagUseCase
 import com.unibo.android.domain.usecases.SaveTagUseCaseImpl
 import com.unibo.android.domain.usecases.UpdateEventUseCase
 import com.unibo.android.domain.usecases.UpdateEventUseCaseImpl
+
+import com.unibo.android.domain.notifications.ReminderScheduler
 
 object UseCasesProvider {
     lateinit var getEventsUseCase: GetEventsUseCase
@@ -26,6 +30,8 @@ object UseCasesProvider {
     lateinit var getTagsUseCase: GetTagsUseCase
     lateinit var saveTagUseCase: SaveTagUseCase
     lateinit var deleteTagUseCase: DeleteTagUseCase
+    lateinit var getWeatherUseCase: GetWeatherUseCase
+    var reminderScheduler: ReminderScheduler? = null
 
     fun setup(repositoryProvider: RepositoryProvider) {
         getEventsUseCase = GetEventsUseCaseImpl(repositoryProvider.eventRepository)
@@ -36,5 +42,6 @@ object UseCasesProvider {
         getTagsUseCase = GetTagsUseCaseImpl(repositoryProvider.tagRepository)
         saveTagUseCase = SaveTagUseCaseImpl(repositoryProvider.tagRepository)
         deleteTagUseCase = DeleteTagUseCaseImpl(repositoryProvider.tagRepository)
+        getWeatherUseCase = GetWeatherUseCaseImpl(repositoryProvider.weatherRepository)
     }
 }
