@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -111,19 +112,17 @@ fun BoardDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { onConfirm(title, description, coverUrl) },
-                enabled = title.isNotBlank()
-            ) { Text(if (isEditing) "Salva" else "Crea") }
-        },
-        dismissButton = {
-            Column {
-                TextButton(onClick = onDismiss) { Text("Annulla") }
+            Row {
                 if (isEditing && onDelete != null) {
                     TextButton(onClick = { showDeleteConfirm = true }) {
                         Text("Elimina", color = MaterialTheme.colorScheme.error)
                     }
                 }
+                TextButton(onClick = onDismiss) { Text("Annulla") }
+                TextButton(
+                    onClick = { onConfirm(title, description, coverUrl) },
+                    enabled = title.isNotBlank()
+                ) { Text(if (isEditing) "Salva" else "Crea") }
             }
         }
     )

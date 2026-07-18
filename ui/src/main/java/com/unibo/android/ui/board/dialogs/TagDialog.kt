@@ -76,19 +76,17 @@ fun TagDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { onConfirm(name, selectedColor) },
-                enabled = name.isNotBlank()
-            ) { Text(if (isEditing) "Salva" else "Crea") }
-        },
-        dismissButton = {
-            Column {
-                TextButton(onClick = onDismiss) { Text("Annulla") }
+            Row {
                 if (isEditing && onDelete != null) {
                     TextButton(onClick = onDelete) {
                         Text("Elimina", color = MaterialTheme.colorScheme.error)
                     }
                 }
+                TextButton(onClick = onDismiss) { Text("Annulla") }
+                TextButton(
+                    onClick = { onConfirm(name, selectedColor) },
+                    enabled = name.isNotBlank()
+                ) { Text(if (isEditing) "Salva" else "Crea") }
             }
         }
     )

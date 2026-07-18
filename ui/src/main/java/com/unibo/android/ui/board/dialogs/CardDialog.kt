@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -112,19 +113,17 @@ fun CardDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { onConfirm(title, description, selectedTagIds.toList()) },
-                enabled = title.isNotBlank()
-            ) { Text("Salva") }
-        },
-        dismissButton = {
-            Column {
-                TextButton(onClick = onDismiss) { Text("Annulla") }
+            Row {
                 if (isEditing && onDelete != null) {
                     TextButton(onClick = onDelete) {
                         Text("Elimina", color = MaterialTheme.colorScheme.error)
                     }
                 }
+                TextButton(onClick = onDismiss) { Text("Annulla") }
+                TextButton(
+                    onClick = { onConfirm(title, description, selectedTagIds.toList()) },
+                    enabled = title.isNotBlank()
+                ) { Text("Salva") }
             }
         }
     )
