@@ -13,9 +13,6 @@ class SaveBoardUseCaseImpl(
     override suspend operator fun invoke(board: BoardModel): Result<Long> {
         if (board.title.isBlank()) return Result.failure(Exception("Title cannot be empty"))
         return try {
-            // save() fa un insert con onConflict=REPLACE: su una board esistente cancella e
-            // ricrea la riga, e il CASCADE delle colonne la svuoterebbe. Su una modifica va
-            // usato update(), che fa un UPDATE SQL vero senza toccare le righe collegate.
             if (board.id == 0L) {
                 Result.success(boardRepository.save(board))
             } else {

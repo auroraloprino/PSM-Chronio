@@ -30,7 +30,6 @@ interface UnsplashApi {
 
             val client = OkHttpClient.Builder()
                 .addInterceptor { chain ->
-                    // La chiave viene aggiunta a ogni richiesta automaticamente.
                     val request = chain.request().newBuilder()
                         .addHeader("Authorization", "Client-ID ${BuildConfig.UNSPLASH_ACCESS_KEY}")
                         .build()

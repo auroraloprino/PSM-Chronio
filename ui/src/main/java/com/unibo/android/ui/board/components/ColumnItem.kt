@@ -158,10 +158,10 @@ fun ColumnItem(
                                 cardCoordinates = it
                                 onCardBoundsChanged(card.id, it.boundsInRoot())
                             }
-                            .pointerInput(card.id) {
+                            .pointerInput(card) {
                                 detectTapGestures(onTap = { onCardClick(card) })
                             }
-                            .pointerInput(card.id) {
+                            .pointerInput(card) {
                                 var current = Offset.Zero
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = {

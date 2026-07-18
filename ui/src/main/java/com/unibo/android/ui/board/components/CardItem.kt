@@ -30,9 +30,6 @@ fun CardItem(
     modifier: Modifier = Modifier,
     elevation: Dp = 1.dp
 ) {
-    // Niente onClick nativo di Card: il tap/long-press sono gestiti a mano da chi la usa
-    // (vedi ColumnItem), altrimenti il clickable interno di Card consuma il gesto per primo
-    // e il dialog di modifica non si apre mai (si vede solo il ripple).
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -41,8 +38,6 @@ fun CardItem(
     ) {
         Column(modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp)) {
             Row(verticalAlignment = Alignment.Top) {
-                // Checkbox con il proprio clickable interno: intercetta il tap prima che
-                // arrivi al detectTapGestures esterno, così non apre il dialog di modifica.
                 Checkbox(
                     checked = card.isDone,
                     onCheckedChange = { onToggleDone() }
