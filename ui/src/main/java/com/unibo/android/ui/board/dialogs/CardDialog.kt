@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -113,18 +111,13 @@ fun CardDialog(
             }
         },
         confirmButton = {
-            Row {
-                if (isEditing && onDelete != null) {
-                    TextButton(onClick = onDelete) {
-                        Text("Elimina", color = MaterialTheme.colorScheme.error)
-                    }
-                }
-                TextButton(onClick = onDismiss) { Text("Annulla") }
-                TextButton(
-                    onClick = { onConfirm(title, description, selectedTagIds.toList()) },
-                    enabled = title.isNotBlank()
-                ) { Text("Salva") }
-            }
+            DialogActionsRow(
+                onDelete = onDelete.takeIf { isEditing },
+                onDismiss = onDismiss,
+                confirmEnabled = title.isNotBlank(),
+                confirmLabel = "Salva",
+                onConfirm = { onConfirm(title, description, selectedTagIds.toList()) }
+            )
         }
     )
 }

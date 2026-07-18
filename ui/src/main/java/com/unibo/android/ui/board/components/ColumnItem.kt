@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -148,6 +149,12 @@ fun ColumnItem(
                     var cardCoordinates by remember(card.id) {
                         mutableStateOf<LayoutCoordinates?>(null)
                     }
+                    // La card più recente, letta senza dover riavviare i pointerInput sotto:
+                    // la chiave resta card.id (stabile) così i gesture detector non vengono
+                    // cancellati/rilanciati ogni volta che cambia un campo qualsiasi (tag,
+                    // posizione durante un riordino) — solo isDone/titolo/tag devono restare
+                    // aggiornati nei callback, non serve interrompere un gesto in corso per questo.
+                    val latestCard by rememberUpdatedState(card)
 
                     CardItem(
                         card = card,
@@ -158,15 +165,15 @@ fun ColumnItem(
                                 cardCoordinates = it
                                 onCardBoundsChanged(card.id, it.boundsInRoot())
                             }
-                            .pointerInput(card) {
-                                detectTapGestures(onTap = { onCardClick(card) })
+                            .pointerInput(card.id) {
+                                detectTapGestures(onTap = { onCardClick(latestCard) })
                             }
-                            .pointerInput(card) {
+                            .pointerInput(card.id) {
                                 var current = Offset.Zero
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = {
                                         current = cardCoordinates?.positionInRoot() ?: Offset.Zero
-                                        onCardDragStart(card, current)
+                                        onCardDragStart(latestCard, current)
                                     },
                                     onDrag = { change, dragAmount ->
                                         change.consume()

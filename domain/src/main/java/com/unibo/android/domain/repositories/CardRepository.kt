@@ -12,4 +12,5 @@ interface CardRepository {
     suspend fun moveToColumn(cardId: Long, targetColumnId: Long, newPosition: Int)
     suspend fun delete(card: CardModel)
     suspend fun setTags(cardId: Long, tagIds: List<Long>)
+    suspend fun setDone(cardId: Long, isDone: Boolean)
 }

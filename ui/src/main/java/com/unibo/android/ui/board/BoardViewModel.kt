@@ -146,14 +146,14 @@ class BoardViewModel(
         UseCasesProvider.deleteCardUseCase(card)
     }
     fun toggleCardDone(card: CardModel) = viewModelScope.launch {
-        UseCasesProvider.saveCardUseCase(card.copy(isDone = !card.isDone), card.tags.map { it.id })
+        UseCasesProvider.toggleCardDoneUseCase(card)
     }
 
     fun createTag(name: String, color: String) = viewModelScope.launch {
         UseCasesProvider.saveBoardTagUseCase(BoardTagModel(name = name, color = color))
     }
     fun updateTag(tag: BoardTagModel) = viewModelScope.launch {
-        UseCasesProvider.updateBoardTagUseCase(tag)
+        UseCasesProvider.saveBoardTagUseCase(tag)
     }
     fun deleteTag(tag: BoardTagModel) = viewModelScope.launch {
         UseCasesProvider.deleteBoardTagUseCase(tag)

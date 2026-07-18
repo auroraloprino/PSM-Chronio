@@ -30,8 +30,8 @@ import com.unibo.android.domain.usecases.SaveCardUseCase
 import com.unibo.android.domain.usecases.SaveCardUseCaseImpl
 import com.unibo.android.domain.usecases.SearchPhotosUseCase
 import com.unibo.android.domain.usecases.SearchPhotosUseCaseImpl
-import com.unibo.android.domain.usecases.UpdateBoardTagUseCase
-import com.unibo.android.domain.usecases.UpdateBoardTagUseCaseImpl
+import com.unibo.android.domain.usecases.ToggleCardDoneUseCase
+import com.unibo.android.domain.usecases.ToggleCardDoneUseCaseImpl
 
 object UseCasesProvider {
     lateinit var getBoardsUseCase: GetBoardsUseCase
@@ -45,9 +45,9 @@ object UseCasesProvider {
     lateinit var saveCardUseCase: SaveCardUseCase
     lateinit var moveCardUseCase: MoveCardUseCase
     lateinit var deleteCardUseCase: DeleteCardUseCase
+    lateinit var toggleCardDoneUseCase: ToggleCardDoneUseCase
     lateinit var getBoardTagsUseCase: GetBoardTagsUseCase
     lateinit var saveBoardTagUseCase: SaveBoardTagUseCase
-    lateinit var updateBoardTagUseCase: UpdateBoardTagUseCase
     lateinit var deleteBoardTagUseCase: DeleteBoardTagUseCase
     lateinit var searchPhotosUseCase: SearchPhotosUseCase
 
@@ -63,9 +63,9 @@ object UseCasesProvider {
         saveCardUseCase = SaveCardUseCaseImpl(repositoryProvider.cardRepository)
         moveCardUseCase = MoveCardUseCaseImpl(repositoryProvider.cardRepository)
         deleteCardUseCase = DeleteCardUseCaseImpl(repositoryProvider.cardRepository)
+        toggleCardDoneUseCase = ToggleCardDoneUseCaseImpl(repositoryProvider.cardRepository)
         getBoardTagsUseCase = GetBoardTagsUseCaseImpl(repositoryProvider.boardTagRepository)
         saveBoardTagUseCase = SaveBoardTagUseCaseImpl(repositoryProvider.boardTagRepository)
-        updateBoardTagUseCase = UpdateBoardTagUseCaseImpl(repositoryProvider.boardTagRepository)
         deleteBoardTagUseCase = DeleteBoardTagUseCaseImpl(repositoryProvider.boardTagRepository)
         searchPhotosUseCase = SearchPhotosUseCaseImpl(repositoryProvider.photoRepository)
     }

@@ -15,7 +15,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,18 +75,13 @@ fun TagDialog(
             }
         },
         confirmButton = {
-            Row {
-                if (isEditing && onDelete != null) {
-                    TextButton(onClick = onDelete) {
-                        Text("Elimina", color = MaterialTheme.colorScheme.error)
-                    }
-                }
-                TextButton(onClick = onDismiss) { Text("Annulla") }
-                TextButton(
-                    onClick = { onConfirm(name, selectedColor) },
-                    enabled = name.isNotBlank()
-                ) { Text(if (isEditing) "Salva" else "Crea") }
-            }
+            DialogActionsRow(
+                onDelete = onDelete.takeIf { isEditing },
+                onDismiss = onDismiss,
+                confirmEnabled = name.isNotBlank(),
+                confirmLabel = if (isEditing) "Salva" else "Crea",
+                onConfirm = { onConfirm(name, selectedColor) }
+            )
         }
     )
 }

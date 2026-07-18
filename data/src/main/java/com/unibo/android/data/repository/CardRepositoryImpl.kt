@@ -40,6 +40,9 @@ class CardRepositoryImpl(context: Context) : CardRepository {
         cardDao.replaceTagsForCard(cardId, tagIds.map { CardTagCrossRef(cardId, it) })
     }
 
+    override suspend fun setDone(cardId: Long, isDone: Boolean) =
+        cardDao.setDone(cardId, isDone)
+
     private fun CardWithTags.toModel() = CardModel(
         id = card.id,
         title = card.title,

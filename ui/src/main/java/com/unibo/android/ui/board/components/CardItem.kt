@@ -36,52 +36,53 @@ fun CardItem(
             .alpha(if (card.isDone) 0.55f else 1f),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation)
     ) {
-        Column(modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp)) {
-            Row(verticalAlignment = Alignment.Top) {
-                Checkbox(
-                    checked = card.isDone,
-                    onCheckedChange = { onToggleDone() }
+        Row(
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Checkbox(
+                checked = card.isDone,
+                onCheckedChange = { onToggleDone() }
+            )
+            Column(modifier = Modifier.padding(top = 12.dp, end = 8.dp)) {
+                Text(
+                    text = card.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textDecoration = if (card.isDone) TextDecoration.LineThrough else null,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Column(modifier = Modifier.padding(top = 12.dp, end = 8.dp)) {
+
+                if (card.description.isNotBlank()) {
                     Text(
-                        text = card.title,
-                        style = MaterialTheme.typography.bodyLarge,
+                        text = card.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textDecoration = if (card.isDone) TextDecoration.LineThrough else null,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
+                }
 
-                    if (card.description.isNotBlank()) {
-                        Text(
-                            text = card.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textDecoration = if (card.isDone) TextDecoration.LineThrough else null,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-
-                    if (card.tags.isNotEmpty()) {
-                        Row(
-                            modifier = Modifier.padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            card.tags.take(5).forEach { tag ->
-                                Surface(
-                                    color = tag.color.toColorOrDefault(),
-                                    shape = RoundedCornerShape(4.dp),
-                                    modifier = Modifier.size(width = 20.dp, height = 6.dp)
-                                ) {}
-                            }
-                            if (card.tags.size > 5) {
-                                Text(
-                                    text = "+${card.tags.size - 5}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
+                if (card.tags.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        card.tags.take(5).forEach { tag ->
+                            Surface(
+                                color = tag.color.toColorOrDefault(),
+                                shape = RoundedCornerShape(4.dp),
+                                modifier = Modifier.size(width = 20.dp, height = 6.dp)
+                            ) {}
+                        }
+                        if (card.tags.size > 5) {
+                            Text(
+                                text = "+${card.tags.size - 5}",
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
                     }
                 }

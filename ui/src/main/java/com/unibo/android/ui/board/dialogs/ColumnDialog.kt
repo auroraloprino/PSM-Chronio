@@ -1,10 +1,8 @@
 package com.unibo.android.ui.board.dialogs
 
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,13 +30,12 @@ fun ColumnDialog(
             )
         },
         confirmButton = {
-            Row {
-                TextButton(onClick = onDismiss) { Text("Annulla") }
-                TextButton(
-                    onClick = { onConfirm(title) },
-                    enabled = title.isNotBlank()
-                ) { Text("Salva") }
-            }
+            DialogActionsRow(
+                onDismiss = onDismiss,
+                confirmEnabled = title.isNotBlank(),
+                confirmLabel = "Salva",
+                onConfirm = { onConfirm(title) }
+            )
         }
     )
 }

@@ -18,6 +18,9 @@ interface CardDao {
     @Update
     suspend fun updateAll(cards: List<CardEntity>)
 
+    @Query("UPDATE cards SET isDone = :isDone WHERE id = :id")
+    suspend fun setDone(id: Long, isDone: Boolean)
+
     @Delete
     suspend fun delete(card: CardEntity)
     @Transaction

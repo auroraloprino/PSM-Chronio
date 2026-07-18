@@ -13,13 +13,12 @@ class SaveCardUseCaseImpl(
     override suspend operator fun invoke(card: CardModel, tagIds: List<Long>): Result<Unit> {
         if (card.title.isBlank()) return Result.failure(Exception("Il titolo della card non può essere vuoto"))
         return try {
-            val cardId: Long
-            if (card.id == 0L) {
+            val cardId = if (card.id == 0L) {
                 val position = cardRepository.nextPosition(card.columnId)
-                cardId = cardRepository.save(card.copy(position = position))
+                cardRepository.save(card.copy(position = position))
             } else {
                 cardRepository.update(card)
-                cardId = card.id
+                card.id
             }
             cardRepository.setTags(cardId, tagIds)
             Result.success(Unit)
