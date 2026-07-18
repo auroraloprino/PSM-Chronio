@@ -12,12 +12,10 @@ import com.unibo.android.ui.utils.endOfMonth
 import com.unibo.android.ui.utils.addMonths
 import com.unibo.android.ui.utils.addWeeks
 import com.unibo.android.ui.utils.endOfDay
-import com.unibo.android.ui.utils.endOfMonth
 import com.unibo.android.ui.utils.eventSpansDay
 import com.unibo.android.ui.utils.isSameDay
 import com.unibo.android.ui.utils.isSameWeek
 import com.unibo.android.ui.utils.startOfDay
-import com.unibo.android.ui.utils.startOfMonth
 import com.unibo.android.ui.utils.startOfWeek
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -117,6 +115,8 @@ class CalendarViewModel : ViewModel() {
             it.copy(activeFilters = updated)
         }
     }
+
+    fun filteredEvents(): List<EventModel> = applyFilters(_uiState.value)
 
     fun eventsForDay(dayMs: Long): List<EventModel> {
         val state = _uiState.value

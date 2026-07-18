@@ -74,12 +74,7 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel(), onToggleTheme: () -> Uni
     }
 
     val now = System.currentTimeMillis()
-    val filteredEvents = if (state.activeFilters.isEmpty()) state.events
-        else state.events.filter { event ->
-            val noTagActive = CalendarViewModel.NO_TAG_FILTER_ID in state.activeFilters
-            val tagFilters = state.activeFilters - CalendarViewModel.NO_TAG_FILTER_ID
-            (noTagActive && event.tagIds.isEmpty()) || tagFilters.any { it in event.tagIds }
-        }
+    val filteredEvents = vm.filteredEvents()
     val todayStart = com.unibo.android.ui.utils.startOfDay(now)
     val todayEnd = com.unibo.android.ui.utils.endOfDay(now)
     val weekEnd = todayStart + 7 * MILLIS_PER_DAY
