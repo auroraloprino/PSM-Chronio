@@ -19,6 +19,7 @@ import com.unibo.android.ui.utils.EventCard
 import com.unibo.android.ui.utils.formatDate
 import com.unibo.android.ui.utils.isSameDay
 import com.unibo.android.ui.utils.isSameWeek
+import com.unibo.android.ui.utils.MILLIS_PER_DAY
 import com.unibo.android.ui.utils.startOfDay
 
 @Composable
@@ -41,9 +42,8 @@ fun EventListView(
         compareByDescending<EventModel> { isAllDay(it) }.thenBy { it.startTime }
     )
 
-    // Per ogni giorno da domani a +6gg, elenca gli eventi che coprono quel giorno
     val weekByDay: List<Pair<Long, List<EventModel>>> = (1..6).mapNotNull { offset ->
-        val dayMs = todayStart + offset * 24 * 3600_000L
+        val dayMs = todayStart + offset * MILLIS_PER_DAY
         val dayEvents = sortedEvents(weekEvents.filter { eventSpansDay(it.startTime, it.endTime, dayMs) })
         if (dayEvents.isEmpty()) null else dayMs to dayEvents
     }

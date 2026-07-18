@@ -39,6 +39,7 @@ import com.unibo.android.ui.components.Sidebar
 import com.unibo.android.ui.utils.TagFilterRow
 import com.unibo.android.ui.utils.addDays
 import com.unibo.android.ui.utils.eventSpansDay
+import com.unibo.android.ui.utils.MILLIS_PER_DAY
 import com.unibo.android.ui.utils.isSameDay
 import java.util.Calendar
 
@@ -81,14 +82,14 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel(), onToggleTheme: () -> Uni
         }
     val todayStart = com.unibo.android.ui.utils.startOfDay(now)
     val todayEnd = com.unibo.android.ui.utils.endOfDay(now)
-    val weekEnd = todayStart + 7 * 24 * 3600_000L
+    val weekEnd = todayStart + 7 * MILLIS_PER_DAY
     val todayEvents = filteredEvents.filter { event ->
         event.startTime <= todayEnd && event.endTime > todayStart
     }
     val todayIds = todayEvents.map { it.id }.toSet()
     val weekEvents = filteredEvents.filter { event ->
         (1..6).any { offset ->
-            val dayMs = todayStart + offset * 24 * 3600_000L
+            val dayMs = todayStart + offset * MILLIS_PER_DAY
             eventSpansDay(event.startTime, event.endTime, dayMs)
         }
     }
@@ -152,7 +153,8 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel(), onToggleTheme: () -> Uni
                             onDayDoubleClick = { vm.selectDay(it); showDaySheet = true },
                             onPrev = { vm.prevMonth() },
                             onNext = { vm.nextMonth() },
-                            weatherByDay = state.weatherByDay
+                            weatherByDay = state.weatherByDay,
+                            holidaysByDay = state.holidaysByDay
                         )
                         TagFilterRow(
                             tags = state.tags,
@@ -245,6 +247,7 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel(), onToggleTheme: () -> Uni
                 events = vm.eventsForDay(state.selectedDay),
                 tags = state.tags,
                 weather = state.weatherByDay[java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(state.selectedDay)],
+                holiday = state.holidaysByDay[java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(state.selectedDay)],
                 onEventClick = { vm.selectEvent(it); showDaySheet = false; showForm = true },
                 onDismiss = { showDaySheet = false }
             )

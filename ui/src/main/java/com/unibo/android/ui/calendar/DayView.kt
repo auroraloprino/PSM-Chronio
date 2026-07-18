@@ -31,7 +31,6 @@ import com.unibo.android.domain.models.EventModel
 import com.unibo.android.domain.models.TagModel
 import com.unibo.android.ui.utils.eventSpansDay
 import com.unibo.android.ui.utils.formatDayFull
-import com.unibo.android.ui.utils.isSameDay
 import com.unibo.android.ui.utils.formatTime
 
 private val HOUR_HEIGHT = 64.dp

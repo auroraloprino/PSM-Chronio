@@ -136,7 +136,6 @@ fun WeekView(
                             ?.let { runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(it.color)) }.getOrNull() }
                             ?: androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(DEFAULT_TAG_COLOR))
                         val onAccent = if (accentColor.luminance() > 0.4f) androidx.compose.ui.graphics.Color.Black else androidx.compose.ui.graphics.Color.White
-                        // show title only on the first day of the span visible in this week
                         val isFirstVisibleDay = isSameDay(event.startTime, dayMs) || dayMs == days.first()
                         Text(
                             if (isFirstVisibleDay) event.title else "",

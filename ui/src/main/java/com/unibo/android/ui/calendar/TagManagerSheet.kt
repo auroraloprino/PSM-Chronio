@@ -118,13 +118,14 @@ fun TagManagerSheet(
 
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it; nameError = false },
+                onValueChange = { if (initialTag?.isSystem != true) { name = it; nameError = false } },
                 label = { Text("Nome") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = nameError,
                 supportingText = if (nameError) ({ Text("Nome obbligatorio") }) else null,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                readOnly = initialTag?.isSystem == true
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

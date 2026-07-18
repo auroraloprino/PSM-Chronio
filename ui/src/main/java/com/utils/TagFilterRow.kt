@@ -246,10 +246,12 @@ private fun TagRow(
                 modifier = Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
-            Icon(Icons.Default.Delete, contentDescription = "Elimina",
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.error)
+        if (!tag.isSystem) {
+            IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Default.Delete, contentDescription = "Elimina",
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }
