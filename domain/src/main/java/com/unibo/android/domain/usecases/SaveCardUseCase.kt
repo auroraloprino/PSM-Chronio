@@ -11,7 +11,7 @@ class SaveCardUseCaseImpl(
     private val cardRepository: CardRepository
 ) : SaveCardUseCase {
     override suspend operator fun invoke(card: CardModel, tagIds: List<Long>): Result<Unit> {
-        if (card.title.isBlank()) return Result.failure(Exception("Card title cannot be empty"))
+        if (card.title.isBlank()) return Result.failure(Exception("Il titolo della card non può essere vuoto"))
         return try {
             val cardId: Long
             if (card.id == 0L) {

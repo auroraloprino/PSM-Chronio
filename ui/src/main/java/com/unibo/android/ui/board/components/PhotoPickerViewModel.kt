@@ -40,7 +40,7 @@ class PhotoPickerViewModel : ViewModel() {
         }
 
         searchJob = viewModelScope.launch {
-            if (!immediate) delay(400)   // debounce
+            if (!immediate) delay(400)
 
             _state.value = _state.value.copy(isLoading = true, error = null)
 

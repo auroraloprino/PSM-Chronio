@@ -11,7 +11,7 @@ class SaveBoardUseCaseImpl(
     private val boardRepository: BoardRepository
 ) : SaveBoardUseCase {
     override suspend operator fun invoke(board: BoardModel): Result<Long> {
-        if (board.title.isBlank()) return Result.failure(Exception("Title cannot be empty"))
+        if (board.title.isBlank()) return Result.failure(Exception("Il titolo non può essere vuoto"))
         return try {
             if (board.id == 0L) {
                 Result.success(boardRepository.save(board))

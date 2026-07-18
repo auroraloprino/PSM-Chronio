@@ -11,7 +11,7 @@ class SaveBoardTagUseCaseImpl(
     private val boardTagRepository: BoardTagRepository
 ) : SaveBoardTagUseCase {
     override suspend operator fun invoke(tag: BoardTagModel): Result<Long> {
-        if (tag.name.isBlank()) return Result.failure(Exception("Tag name cannot be empty"))
+        if (tag.name.isBlank()) return Result.failure(Exception("Il nome del tag non può essere vuoto"))
         return try {
             Result.success(boardTagRepository.save(tag))
         } catch (e: Exception) {

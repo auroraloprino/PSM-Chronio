@@ -11,7 +11,7 @@ class AddColumnUseCaseImpl(
     private val columnRepository: ColumnRepository
 ) : AddColumnUseCase {
     override suspend operator fun invoke(boardId: Long, title: String): Result<Long> {
-        if (title.isBlank()) return Result.failure(Exception("Column title cannot be empty"))
+        if (title.isBlank()) return Result.failure(Exception("Il titolo della colonna non può essere vuoto"))
         return try {
             val position = columnRepository.nextPosition(boardId)
             val id = columnRepository.save(
