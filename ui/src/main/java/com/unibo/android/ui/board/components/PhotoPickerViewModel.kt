@@ -65,8 +65,9 @@ class PhotoPickerViewModel : ViewModel() {
     }
 
     fun initWithQuery(initialQuery: String) {
-        if (_state.value.hasSearched || initialQuery.isBlank()) return
-        _state.value = _state.value.copy(query = initialQuery)
+        if (initialQuery.isBlank()) return
+        if (_state.value.hasSearched && _state.value.query == initialQuery) return
+        _state.value = PhotoPickerState(query = initialQuery)
         search(immediate = true)
     }
 
