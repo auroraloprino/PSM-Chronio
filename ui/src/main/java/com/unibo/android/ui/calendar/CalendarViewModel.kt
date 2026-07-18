@@ -5,13 +5,18 @@ import androidx.lifecycle.viewModelScope
 import com.unibo.android.domain.di.UseCasesProvider
 import com.unibo.android.domain.models.EventModel
 import com.unibo.android.domain.models.TagModel
+import com.unibo.android.domain.models.WeatherModel
+import com.unibo.android.ui.utils.startOfMonth
+import com.unibo.android.ui.utils.endOfMonth
 import com.unibo.android.ui.utils.addMonths
 import com.unibo.android.ui.utils.addWeeks
 import com.unibo.android.ui.utils.endOfDay
+import com.unibo.android.ui.utils.endOfMonth
 import com.unibo.android.ui.utils.eventSpansDay
 import com.unibo.android.ui.utils.isSameDay
 import com.unibo.android.ui.utils.isSameWeek
 import com.unibo.android.ui.utils.startOfDay
+import com.unibo.android.ui.utils.startOfMonth
 import com.unibo.android.ui.utils.startOfWeek
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +34,8 @@ data class CalendarUiState(
     val selectedDay: Long = startOfDay(System.currentTimeMillis()),
     val activeFilters: Set<Long> = emptySet(),
     val selectedEvent: EventModel? = null,
-    val calendarView: CalendarView = CalendarView.MONTH
+    val calendarView: CalendarView = CalendarView.MONTH,
+    val weatherByDay: Map<String, WeatherModel> = emptyMap()
 )
 
 class CalendarViewModel : ViewModel() {
@@ -37,7 +43,7 @@ class CalendarViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
-    init { loadData() }
+    init { loadData(); loadWeather() }
 
     fun loadData() {
         viewModelScope.launch {
@@ -59,9 +65,25 @@ class CalendarViewModel : ViewModel() {
 
     fun selectEvent(event: EventModel?) = _uiState.update { it.copy(selectedEvent = event) }
 
-    fun nextMonth() = _uiState.update { it.copy(visibleMonth = addMonths(it.visibleMonth, 1)) }
+    fun nextMonth() {
+        _uiState.update { it.copy(visibleMonth = addMonths(it.visibleMonth, 1)) }
+        loadWeather()
+    }
 
-    fun prevMonth() = _uiState.update { it.copy(visibleMonth = addMonths(it.visibleMonth, -1)) }
+    fun prevMonth() {
+        _uiState.update { it.copy(visibleMonth = addMonths(it.visibleMonth, -1)) }
+        loadWeather()
+    }
+
+    fun loadWeather() {
+        viewModelScope.launch {
+            runCatching {
+                val month = _uiState.value.visibleMonth
+                val forecast = UseCasesProvider.getWeatherUseCase(0.0, 0.0, startOfMonth(month), endOfMonth(month))
+                _uiState.update { it.copy(weatherByDay = forecast.associateBy { w -> w.date }) }
+            }
+        }
+    }
 
     fun nextWeek() = _uiState.update { it.copy(visibleWeek = addWeeks(it.visibleWeek, 1)) }
 
@@ -115,14 +137,17 @@ class CalendarViewModel : ViewModel() {
 
     fun saveEvent(event: EventModel, tagIds: List<Long>) {
         viewModelScope.launch {
-            UseCasesProvider.saveEventUseCase(event, tagIds)
+            val id = UseCasesProvider.saveEventUseCase(event, tagIds)
+            UseCasesProvider.reminderScheduler?.schedule(event.copy(id = id))
             loadData()
         }
     }
 
     fun updateEvent(event: EventModel, tagIds: List<Long>) {
         viewModelScope.launch {
+            UseCasesProvider.reminderScheduler?.cancel(event.id)
             UseCasesProvider.updateEventUseCase(event, tagIds)
+            UseCasesProvider.reminderScheduler?.schedule(event)
             loadData()
         }
     }
@@ -150,6 +175,7 @@ class CalendarViewModel : ViewModel() {
 
     fun deleteEvent(event: EventModel) {
         viewModelScope.launch {
+            UseCasesProvider.reminderScheduler?.cancel(event.id)
             UseCasesProvider.deleteEventUseCase(event)
             _uiState.update { it.copy(selectedEvent = null) }
             loadData()
