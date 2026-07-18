@@ -62,8 +62,9 @@ fun ColumnItem(
     columnDragHandleScope: ReorderableCollectionItemScope? = null,
     draggedCardId: Long? = null,
     dropPreviewIndex: Int? = null,
+    onColumnBoundsChanged: (Rect) -> Unit = {},
     onCardBoundsChanged: (cardId: Long, Rect) -> Unit = { _, _ -> },
-    onCardDragStart: (card: CardModel, originInRoot: Offset) -> Unit = { _, _ -> },
+    onCardDragStart: (card: CardModel, originInRoot: Offset, cardHeight: Float) -> Unit = { _, _, _ -> },
     onCardDrag: (positionInRoot: Offset) -> Unit = {},
     onCardDragEnd: () -> Unit = {}
 ) {
@@ -73,6 +74,7 @@ fun ColumnItem(
     Surface(
         modifier = modifier
             .width(280.dp)
+            .onGloballyPositioned { onColumnBoundsChanged(it.boundsInRoot()) }
             .then(
                 if (isDropTarget)
                     Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
@@ -173,7 +175,8 @@ fun ColumnItem(
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = {
                                         current = cardCoordinates?.positionInRoot() ?: Offset.Zero
-                                        onCardDragStart(latestCard, current)
+                                        val height = cardCoordinates?.size?.height?.toFloat() ?: 0f
+                                        onCardDragStart(latestCard, current, height)
                                     },
                                     onDrag = { change, dragAmount ->
                                         change.consume()

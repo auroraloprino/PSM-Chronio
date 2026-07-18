@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -58,8 +59,8 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 
 private data class CardDragState(
     val card: CardModel,
-    val sourceColumnId: Long,
     val topLeftInRoot: Offset,
+    val cardHeight: Float,
     val targetColumnId: Long,
     val targetIndex: Int
 )
@@ -88,6 +89,8 @@ fun BoardScreen(
     var dialog by remember { mutableStateOf<DialogState>(DialogState.None) }
     var cardDragState by remember { mutableStateOf<CardDragState?>(null) }
     val cardBounds = remember { mutableStateMapOf<Long, Rect>() }
+    val columnBounds = remember { mutableStateMapOf<Long, Rect>() }
+    val halfCardWidthPx = with(LocalDensity.current) { 130.dp.toPx() }
 
     val displayColumns = draggingColumns
         ?: state.columns.map { it.column }
@@ -97,30 +100,25 @@ fun BoardScreen(
         vm.onColumnMove(from.index, to.index)
     }
 
-    fun neighborColumnId(sourceColumnId: Long, direction: Int): Long? {
-        val idx = displayColumns.indexOfFirst { it.id == sourceColumnId }
-        if (idx == -1) return null
-        return displayColumns.getOrNull(idx + direction)?.id
+    fun targetColumnFor(currentTargetColumnId: Long, position: Offset): Long {
+        val centerX = position.x + halfCardWidthPx
+        return columnBounds.entries
+            .firstOrNull { (_, rect) -> centerX >= rect.left && centerX <= rect.right }
+            ?.key ?: currentTargetColumnId
     }
 
-    fun indexInColumn(columnId: Long, pointerY: Float, draggedCardId: Long): Int {
+    fun indexInColumn(columnId: Long, draggedCenterY: Float, draggedCardId: Long): Int {
         val columnCards = (state.columns.find { it.column.id == columnId }?.cards ?: emptyList())
             .filterNot { it.id == draggedCardId }
         return columnCards.indexOfFirst { c ->
             val rect = cardBounds[c.id]
-            rect != null && pointerY < (rect.top + rect.bottom) / 2f
+            rect != null && draggedCenterY < (rect.top + rect.bottom) / 2f
         }.let { if (it == -1) columnCards.size else it }
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val screenWidthPx = constraints.maxWidth.toFloat()
         val edgeZonePx = screenWidthPx * 0.28f
-
-        fun targetColumnFor(sourceColumnId: Long, position: Offset): Long = when {
-            position.x < edgeZonePx -> neighborColumnId(sourceColumnId, -1) ?: sourceColumnId
-            position.x > screenWidthPx - edgeZonePx -> neighborColumnId(sourceColumnId, 1) ?: sourceColumnId
-            else -> sourceColumnId
-        }
 
         LaunchedEffect(cardDragState != null) {
             while (cardDragState != null) {
@@ -195,16 +193,18 @@ fun BoardScreen(
                                     onDeleteColumn = { vm.deleteColumn(column) },
                                     draggedCardId = dragState?.card?.id,
                                     dropPreviewIndex = if (dragState?.targetColumnId == column.id) dragState.targetIndex else null,
+                                    onColumnBoundsChanged = { rect -> columnBounds[column.id] = rect },
                                     onCardBoundsChanged = { cardId, rect -> cardBounds[cardId] = rect },
-                                    onCardDragStart = { card, originInRoot ->
+                                    onCardDragStart = { card, originInRoot, cardHeight ->
                                         val targetColumnId = targetColumnFor(column.id, originInRoot)
-                                        val index = indexInColumn(targetColumnId, originInRoot.y, card.id)
-                                        cardDragState = CardDragState(card, column.id, originInRoot, targetColumnId, index)
+                                        val index = indexInColumn(targetColumnId, originInRoot.y + cardHeight / 2f, card.id)
+                                        cardDragState = CardDragState(card, originInRoot, cardHeight, targetColumnId, index)
                                     },
                                     onCardDrag = { positionInRoot ->
                                         cardDragState?.let { current ->
-                                            val targetColumnId = targetColumnFor(current.sourceColumnId, positionInRoot)
-                                            val index = indexInColumn(targetColumnId, positionInRoot.y, current.card.id)
+                                            val targetColumnId = targetColumnFor(current.targetColumnId, positionInRoot)
+                                            val centerY = positionInRoot.y + current.cardHeight / 2f
+                                            val index = indexInColumn(targetColumnId, centerY, current.card.id)
                                             cardDragState = current.copy(
                                                 topLeftInRoot = positionInRoot,
                                                 targetColumnId = targetColumnId,
