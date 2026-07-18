@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -81,6 +83,8 @@ fun BoardScreen(
     boardId: Long,
     boardTitle: String,
     onBack: () -> Unit,
+    onToggleTheme: () -> Unit = {},
+    isDark: Boolean = false,
     vm: BoardViewModel = viewModel { BoardViewModel(boardId) }
 ) {
     val state by vm.uiState.collectAsState()
@@ -138,6 +142,14 @@ fun BoardScreen(
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Indietro")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onToggleTheme) {
+                            Icon(
+                                imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = if (isDark) "Tema chiaro" else "Tema scuro"
+                            )
                         }
                     }
                 )

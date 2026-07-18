@@ -28,7 +28,9 @@ fun AppNavigation(onToggleTheme: () -> Unit = {}, isDark: Boolean = false) {
                 onBoardClick = { board ->
                     navController.navigate(Routes.board(board.id, board.title))
                 },
-                onNavigateToCalendar = { navController.popBackStack() }
+                onNavigateToCalendar = { navController.popBackStack() },
+                onToggleTheme = onToggleTheme,
+                isDark = isDark
             )
         }
 
@@ -44,7 +46,9 @@ fun AppNavigation(onToggleTheme: () -> Unit = {}, isDark: Boolean = false) {
             BoardScreen(
                 boardId = boardId,
                 boardTitle = boardTitle,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onToggleTheme = onToggleTheme,
+                isDark = isDark
             )
         }
     }

@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +49,8 @@ import com.unibo.android.ui.components.Sidebar
 fun BoardListScreen(
     onBoardClick: (BoardModel) -> Unit,
     onNavigateToCalendar: () -> Unit = {},
+    onToggleTheme: () -> Unit = {},
+    isDark: Boolean = false,
     vm: BoardListViewModel = viewModel()
 ) {
     val boards by vm.boards.collectAsState()
@@ -62,6 +66,14 @@ fun BoardListScreen(
                     navigationIcon = {
                         IconButton(onClick = { showDrawer = true }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onToggleTheme) {
+                            Icon(
+                                imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = if (isDark) "Tema chiaro" else "Tema scuro"
+                            )
                         }
                     }
                 )
@@ -131,6 +143,8 @@ fun BoardListScreen(
         Sidebar(
             visible = showDrawer,
             onClose = { showDrawer = false },
+            onToggleTheme = onToggleTheme,
+            isDark = isDark,
             isBoardsSelected = true,
             onNavigateToCalendar = onNavigateToCalendar
         )
