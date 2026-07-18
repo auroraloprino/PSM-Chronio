@@ -38,8 +38,12 @@ fun EventListView(
     val tagsById = tags.associateBy { it.id }
 
     fun isAllDay(e: EventModel) = e.allDay
+    fun timeOfDay(ms: Long): Int {
+        val cal = java.util.Calendar.getInstance().apply { timeInMillis = ms }
+        return cal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + cal.get(java.util.Calendar.MINUTE)
+    }
     fun sortedEvents(list: List<EventModel>) = list.sortedWith(
-        compareByDescending<EventModel> { isAllDay(it) }.thenBy { it.startTime }
+        compareByDescending<EventModel> { isAllDay(it) }.thenBy { timeOfDay(it.startTime) }
     )
 
     val weekByDay: List<Pair<Long, List<EventModel>>> = (1..6).mapNotNull { offset ->
