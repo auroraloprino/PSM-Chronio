@@ -4,6 +4,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+const val MILLIS_PER_HOUR = 3600_000L
+const val MILLIS_PER_DAY = 24 * MILLIS_PER_HOUR
+
 fun startOfDay(ms: Long): Long = Calendar.getInstance().apply {
     timeInMillis = ms
     set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
@@ -44,7 +47,6 @@ fun isSameDay(ms1: Long, ms2: Long): Boolean {
             c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
 }
 
-/** True if the event is visible on [dayMs] — covers start day, end day, and all days in between. */
 fun eventSpansDay(startTime: Long, endTime: Long, dayMs: Long): Boolean {
     val dayStart = startOfDay(dayMs)
     val dayEnd = endOfDay(dayMs)

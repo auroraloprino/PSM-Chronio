@@ -48,7 +48,7 @@ fun Sidebar(visible: Boolean, onClose: () -> Unit, onToggleTheme: () -> Unit = {
                 .padding(16.dp)
         ) {
             Spacer(modifier = Modifier.height(32.dp))
-            Text("Chronio", style = MaterialTheme.typography.headlineSmall)
+            Text("Chronio", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(16.dp))
             NavigationDrawerItem(
                 icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },

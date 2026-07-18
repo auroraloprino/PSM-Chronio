@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.unibo.android.domain.di.UseCasesProvider
 import com.unibo.android.domain.models.EventModel
+import com.unibo.android.domain.models.HolidayModel
 import com.unibo.android.domain.models.TagModel
 import com.unibo.android.domain.models.WeatherModel
 import com.unibo.android.ui.utils.startOfMonth
@@ -35,7 +36,8 @@ data class CalendarUiState(
     val activeFilters: Set<Long> = emptySet(),
     val selectedEvent: EventModel? = null,
     val calendarView: CalendarView = CalendarView.MONTH,
-    val weatherByDay: Map<String, WeatherModel> = emptyMap()
+    val weatherByDay: Map<String, WeatherModel> = emptyMap(),
+    val holidaysByDay: Map<String, HolidayModel> = emptyMap()
 )
 
 class CalendarViewModel : ViewModel() {
@@ -43,7 +45,7 @@ class CalendarViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
-    init { loadData(); loadWeather() }
+    init { loadData(); loadWeather(); loadHolidays() }
 
     fun loadData() {
         viewModelScope.launch {
@@ -64,6 +66,23 @@ class CalendarViewModel : ViewModel() {
     }
 
     fun selectEvent(event: EventModel?) = _uiState.update { it.copy(selectedEvent = event) }
+
+    fun loadHolidays() {
+        viewModelScope.launch {
+            runCatching {
+                val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+                val holidays = UseCasesProvider.getHolidaysUseCase(year)
+                _uiState.update { it.copy(holidaysByDay = holidays.associateBy { h -> h.date }) }
+                val existingTags = UseCasesProvider.getTagsUseCase()
+                if (existingTags.none { it.isSystem }) {
+                    UseCasesProvider.saveTagUseCase(
+                        TagModel(name = "Festivit\u00e0", color = "#E53935", isSystem = true)
+                    )
+                    loadData()
+                }
+            }
+        }
+    }
 
     fun nextMonth() {
         _uiState.update { it.copy(visibleMonth = addMonths(it.visibleMonth, 1)) }

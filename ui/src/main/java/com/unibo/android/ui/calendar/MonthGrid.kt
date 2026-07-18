@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.unibo.android.domain.models.WeatherModel
+import com.unibo.android.domain.models.HolidayModel
 import com.unibo.android.ui.utils.dayTimestamp
 import com.unibo.android.ui.utils.daysInMonth
 import com.unibo.android.ui.utils.firstDayOfWeekInMonth
@@ -50,8 +51,6 @@ private fun weatherIcon(code: Int): String = when (code) {
 }
 
 private val DAY_LABELS = listOf("Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom")
-//TODO: magari mettere i numeri come costanti così evito i magic numbers.
-// bisogna vedere se è una best practive anche se penso di sì
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
 fun MonthGrid(
@@ -62,7 +61,8 @@ fun MonthGrid(
     onDayDoubleClick: (Long) -> Unit = {},
     onPrev: () -> Unit,
     onNext: () -> Unit,
-    weatherByDay: Map<String, WeatherModel> = emptyMap()
+    weatherByDay: Map<String, WeatherModel> = emptyMap(),
+    holidaysByDay: Map<String, HolidayModel> = emptyMap()
 ) {
     val days = daysInMonth(visibleMonth)
     val firstDow = firstDayOfWeekInMonth(visibleMonth)
@@ -111,6 +111,8 @@ fun MonthGrid(
                         val isSelected = isSameDay(dayMs, selectedDay)
                         val isToday = isSameDay(dayMs, today)
                         val hasDot = hasEvents(dayMs)
+                        val dateKey = dateFmt.format(dayMs)
+                        val isHoliday = holidaysByDay.containsKey(dateKey)
 
                         Box(
                             modifier = Modifier
@@ -149,6 +151,17 @@ fun MonthGrid(
                                             .background(
                                                 if (isSelected) MaterialTheme.colorScheme.onPrimary
                                                 else MaterialTheme.colorScheme.primary
+                                            )
+                                    )
+                                }
+                                if (isHoliday) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(4.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                                else androidx.compose.ui.graphics.Color.Red
                                             )
                                     )
                                 }
