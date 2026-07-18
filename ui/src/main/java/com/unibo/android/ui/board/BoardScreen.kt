@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.unibo.android.domain.models.BoardTagModel
 import com.unibo.android.domain.models.CardModel
 import com.unibo.android.domain.models.ColumnModel
 import com.unibo.android.ui.board.components.CardItem
@@ -75,6 +76,7 @@ private sealed interface DialogState {
     data class NewCard(val columnId: Long) : DialogState
     data class EditCard(val card: CardModel) : DialogState
     data object NewTag : DialogState
+    data class EditTag(val tag: BoardTagModel) : DialogState
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -165,7 +167,8 @@ fun BoardScreen(
                     activeFilters = state.activeFilters,
                     onToggleFilter = vm::toggleFilter,
                     onClearFilters = vm::clearFilters,
-                    onCreateTag = { dialog = DialogState.NewTag }
+                    onCreateTag = { dialog = DialogState.NewTag },
+                    onEditTag = { dialog = DialogState.EditTag(it) }
                 )
 
                 if (displayColumns.isEmpty()) {
@@ -285,6 +288,13 @@ fun BoardScreen(
 
         is DialogState.NewTag -> TagDialog(
             onConfirm = { name, color -> vm.createTag(name, color); dialog = DialogState.None },
+            onDismiss = { dialog = DialogState.None }
+        )
+
+        is DialogState.EditTag -> TagDialog(
+            tag = d.tag,
+            onConfirm = { name, color -> vm.updateTag(d.tag.copy(name = name, color = color)); dialog = DialogState.None },
+            onDelete = { vm.deleteTag(d.tag); dialog = DialogState.None },
             onDismiss = { dialog = DialogState.None }
         )
     }

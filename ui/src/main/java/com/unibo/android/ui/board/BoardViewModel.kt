@@ -153,6 +153,9 @@ class BoardViewModel(
     fun createTag(name: String, color: String) = viewModelScope.launch {
         UseCasesProvider.saveBoardTagUseCase(BoardTagModel(name = name, color = color))
     }
+    fun updateTag(tag: BoardTagModel) = viewModelScope.launch {
+        UseCasesProvider.updateBoardTagUseCase(tag)
+    }
     fun deleteTag(tag: BoardTagModel) = viewModelScope.launch {
         UseCasesProvider.deleteBoardTagUseCase(tag)
         activeFilters.value = activeFilters.value - tag.id

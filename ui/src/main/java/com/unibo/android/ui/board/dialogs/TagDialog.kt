@@ -23,20 +23,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.unibo.android.domain.models.BoardTagModel
 import com.unibo.android.ui.board.components.toColorOrDefault
 import com.unibo.android.ui.theme.TagColors
 
 @Composable
 fun TagDialog(
+    tag: BoardTagModel? = null,
     onConfirm: (name: String, color: String) -> Unit,
+    onDelete: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var selectedColor by remember { mutableStateOf(TagColors.first()) }
+    val isEditing = tag != null
+
+    var name by remember(tag?.id) { mutableStateOf(tag?.name ?: "") }
+    var selectedColor by remember(tag?.id) { mutableStateOf(tag?.color ?: TagColors.first()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuovo tag") },
+        title = { Text(if (isEditing) "Modifica tag" else "Nuovo tag") },
         text = {
             Column {
                 OutlinedTextField(
@@ -74,10 +79,17 @@ fun TagDialog(
             TextButton(
                 onClick = { onConfirm(name, selectedColor) },
                 enabled = name.isNotBlank()
-            ) { Text("Crea") }
+            ) { Text(if (isEditing) "Salva" else "Crea") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Annulla") }
+            Column {
+                TextButton(onClick = onDismiss) { Text("Annulla") }
+                if (isEditing && onDelete != null) {
+                    TextButton(onClick = onDelete) {
+                        Text("Elimina", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
         }
     )
 }

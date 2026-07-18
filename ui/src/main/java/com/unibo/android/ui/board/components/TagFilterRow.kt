@@ -9,11 +9,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +31,7 @@ fun TagFilterRow(
     onToggleFilter: (Long) -> Unit,
     onClearFilters: () -> Unit,
     onCreateTag: () -> Unit,
+    onEditTag: (BoardTagModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyRow(
@@ -48,6 +51,18 @@ fun TagFilterRow(
                         shape = CircleShape,
                         modifier = Modifier.size(12.dp)
                     ) {}
+                },
+                trailingIcon = {
+                    IconButton(
+                        onClick = { onEditTag(tag) },
+                        modifier = Modifier.size(18.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Modifica tag ${tag.name}",
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = tag.color.toColorOrDefault().copy(alpha = 0.25f)
