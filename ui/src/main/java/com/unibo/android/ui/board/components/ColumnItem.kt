@@ -136,9 +136,6 @@ fun ColumnItem(
                 contentPadding = PaddingValues(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Iteriamo sulla lista intera (non filtrata): rimuovere la card trascinata dalla
-                // lista distruggerebbe il suo composable a metà gesto, interrompendo il drag
-                // (il gesto in corso verrebbe cancellato). La rendiamo invece invisibile.
                 itemsIndexed(cards, key = { _, c -> c.id }) { _, card ->
                     val isDragged = card.id == draggedCardId
                     val visualIndex = if (isDragged) -1 else displayCards.indexOf(card)
@@ -153,9 +150,6 @@ fun ColumnItem(
 
                     CardItem(
                         card = card,
-                        // Il tap è gestito a mano sotto (detectTapGestures), insieme al drag,
-                        // per evitare che il click interno di Card competa con il trascinamento.
-                        onClick = {},
                         modifier = Modifier
                             .alpha(if (isDragged) 0f else 1f)
                             .onGloballyPositioned {

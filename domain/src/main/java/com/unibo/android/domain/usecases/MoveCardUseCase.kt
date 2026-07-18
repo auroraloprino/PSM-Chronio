@@ -7,11 +7,6 @@ interface MoveCardUseCase {
     suspend fun reorderWithinColumn(orderedCards: List<CardModel>): Result<Unit>
     suspend fun moveToColumn(card: CardModel, targetColumnId: Long): Result<Unit>
 
-    /**
-     * Moves [card] into [targetColumnId], landing at its index within [orderedTargetColumnCards]
-     * (the desired final order of the target column, [card] included). Positions of every card
-     * in that list are renumbered so the drop lands exactly where requested instead of at the end.
-     */
     suspend fun moveToColumnAtPosition(
         card: CardModel,
         targetColumnId: Long,

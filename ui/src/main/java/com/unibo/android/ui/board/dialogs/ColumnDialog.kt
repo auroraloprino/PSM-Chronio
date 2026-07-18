@@ -33,7 +33,7 @@ fun ColumnDialog(
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(title) },
-                enabled = title.isNotBlank()   // validazione lato UI
+                enabled = title.isNotBlank()
             ) { Text("Salva") }
         },
         dismissButton = {

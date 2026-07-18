@@ -87,10 +87,6 @@ class BoardViewModel(
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BoardUiState())
 
-    /**
-     * Moves [card] so that it lands at [targetIndex] within [targetColumnId]'s card list
-     * (same column for a local reorder, different column for a cross-column move).
-     */
     fun moveCard(card: CardModel, targetColumnId: Long, targetIndex: Int) = viewModelScope.launch {
         val targetCards = uiState.value.columns.find { it.column.id == targetColumnId }?.cards
             ?.filterNot { it.id == card.id }

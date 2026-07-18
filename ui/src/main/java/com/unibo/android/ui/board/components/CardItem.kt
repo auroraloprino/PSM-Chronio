@@ -24,14 +24,15 @@ import com.unibo.android.domain.models.CardModel
 @Composable
 fun CardItem(
     card: CardModel,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     elevation: Dp = 1.dp
 ) {
+    // Niente onClick nativo di Card: il tap/long-press sono gestiti a mano da chi la usa
+    // (vedi ColumnItem), altrimenti il clickable interno di Card consuma il gesto per primo
+    // e il dialog di modifica non si apre mai (si vede solo il ripple).
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
-        onClick = onClick
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(

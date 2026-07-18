@@ -56,11 +56,6 @@ import kotlinx.coroutines.delay
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
-/**
- * Live state of a card being dragged. [targetColumnId]/[targetIndex] sono ricalcolati ad ogni
- * movimento: la colonna cambia appena il dito esce (orizzontalmente) dalla colonna di origine,
- * l'indice viene scelto confrontando la posizione verticale con le card già presenti.
- */
 private data class CardDragState(
     val card: CardModel,
     val sourceColumnId: Long,
@@ -119,9 +114,6 @@ fun BoardScreen(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val screenWidthPx = constraints.maxWidth.toFloat()
-        // Zona di attivazione basata su percentuale dello schermo (non un valore fisso in dp):
-        // raggiungere il bordo fisico con il pollice è scomodo/difficile, quindi la zona utile
-        // è ampia (28% da ogni lato) invece di richiedere di arrivare quasi al margine esatto.
         val edgeZonePx = screenWidthPx * 0.28f
 
         fun targetColumnFor(sourceColumnId: Long, position: Offset): Long = when {
@@ -195,7 +187,7 @@ fun BoardScreen(
                                 ColumnItem(
                                     column = column,
                                     cards = cards,
-                                    columnDragHandleScope = this,  // scope per l'handle colonna
+                                    columnDragHandleScope = this,
                                     onCardClick = { dialog = DialogState.EditCard(it) },
                                     onAddCard = { dialog = DialogState.NewCard(column.id) },
                                     onRenameColumn = { dialog = DialogState.RenameColumn(column) },
@@ -243,7 +235,7 @@ fun BoardScreen(
                     .width(260.dp)
                     .graphicsLayer { alpha = 0.85f; shadowElevation = 16f }
             ) {
-                CardItem(card = dragState.card, onClick = {})
+                CardItem(card = dragState.card)
             }
         }
     }
