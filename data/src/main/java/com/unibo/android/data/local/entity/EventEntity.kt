@@ -11,5 +11,6 @@ data class EventEntity(
     val description: String = "",
     val startTime: Long,
     val endTime: Long,
+    val allDay: Boolean = false,
     val reminderMinutes: Int = 30
 )
