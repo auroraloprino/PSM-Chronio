@@ -16,7 +16,7 @@ import com.unibo.android.data.local.entity.TagEntity
         TagEntity::class,
         EventTagCrossRef::class
     ],
-    version = 2
+    version = 3
 )
 abstract class ChronioDatabase : RoomDatabase() {
     abstract fun eventDao(): EventDao
@@ -36,6 +36,9 @@ abstract class ChronioDatabase : RoomDatabase() {
                     androidx.room.migration.Migration(1, 2) { db ->
                         db.execSQL("ALTER TABLE events ADD COLUMN allDay INTEGER NOT NULL DEFAULT 0")
                         db.execSQL("UPDATE events SET allDay = 1 WHERE (endTime - startTime) >= 86400000")
+                    },
+                    androidx.room.migration.Migration(2, 3) { db ->
+                        db.execSQL("ALTER TABLE tags ADD COLUMN isSystem INTEGER NOT NULL DEFAULT 0")
                     }
                 ).build().also { INSTANCE = it }
             }
