@@ -38,7 +38,6 @@ fun EventCard(
     val accentColor = tags.firstOrNull()?.let {
         runCatching { Color(android.graphics.Color.parseColor(it.color)) }.getOrNull()
     } ?: Color(android.graphics.Color.parseColor(DEFAULT_TAG_COLOR))
-    val isAllDay = event.allDay
 
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
@@ -58,7 +57,7 @@ fun EventCard(
             ) {
                 Text(event.title, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    if (isAllDay) "Tutto il giorno"
+                    if (event.allDay) "Tutto il giorno"
                     else "${formatTime(event.startTime)} – ${formatTime(event.endTime)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

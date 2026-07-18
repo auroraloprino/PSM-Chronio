@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.unibo.android.domain.models.EventModel
+import com.unibo.android.domain.models.HolidayModel
 import com.unibo.android.domain.models.TagModel
 import com.unibo.android.domain.models.WeatherModel
 import com.unibo.android.ui.utils.EventCard
@@ -43,6 +44,7 @@ fun DayEventsSheet(
     events: List<EventModel>,
     tags: List<TagModel>,
     weather: WeatherModel?,
+    holiday: HolidayModel?,
     onEventClick: (EventModel) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -67,10 +69,7 @@ fun DayEventsSheet(
                 Text(formatDate(selectedDay), style = MaterialTheme.typography.titleMedium)
                 if (weather != null) {
                     Spacer(Modifier.width(12.dp))
-                    Text(
-                        weatherIcon(weather.weatherCode),
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Text(weatherIcon(weather.weatherCode), style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.width(4.dp))
                     Text(
                         "${weather.tempMax.toInt()}° / ${weather.tempMin.toInt()}°",
@@ -78,6 +77,13 @@ fun DayEventsSheet(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+            if (holiday != null) {
+                Text(
+                    "🎉 ${holiday.localName}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
             if (events.isEmpty()) {
                 Text(
