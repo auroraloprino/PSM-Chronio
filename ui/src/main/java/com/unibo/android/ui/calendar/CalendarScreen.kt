@@ -79,18 +79,22 @@ fun CalendarScreen(
     }
 
     val now = System.currentTimeMillis()
-    val filteredEvents = vm.filteredEvents()
+    val filteredEvents = remember(state.events, state.activeFilters) { vm.filteredEvents() }
     val todayStart = com.unibo.android.ui.utils.startOfDay(now)
     val todayEnd = com.unibo.android.ui.utils.endOfDay(now)
     val weekEnd = todayStart + 7 * MILLIS_PER_DAY
-    val todayEvents = filteredEvents.filter { event ->
-        event.startTime <= todayEnd && event.endTime > todayStart
+    val todayEvents = remember(filteredEvents) {
+        filteredEvents.filter { event ->
+            event.startTime <= todayEnd && event.endTime > todayStart
+        }
     }
     val todayIds = todayEvents.map { it.id }.toSet()
-    val weekEvents = filteredEvents.filter { event ->
-        (1..6).any { offset ->
-            val dayMs = todayStart + offset * MILLIS_PER_DAY
-            eventSpansDay(event.startTime, event.endTime, dayMs)
+    val weekEvents = remember(filteredEvents) {
+        filteredEvents.filter { event ->
+            (1..6).any { offset ->
+                val dayMs = todayStart + offset * MILLIS_PER_DAY
+                eventSpansDay(event.startTime, event.endTime, dayMs)
+            }
         }
     }
 
