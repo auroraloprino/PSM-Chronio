@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Sidebar(visible: Boolean, onClose: () -> Unit) {
+fun Sidebar(visible: Boolean, onClose: () -> Unit, onToggleTheme: () -> Unit = {}, isDark: Boolean = false) {
     if (visible) {
         Box(
             modifier = Modifier

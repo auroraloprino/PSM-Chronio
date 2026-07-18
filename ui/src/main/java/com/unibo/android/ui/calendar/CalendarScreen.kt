@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -17,25 +19,32 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.unibo.android.ui.components.Sidebar
 import com.unibo.android.ui.utils.TagFilterRow
 import com.unibo.android.ui.utils.addDays
+import com.unibo.android.ui.utils.eventSpansDay
 import com.unibo.android.ui.utils.isSameDay
-import com.unibo.android.ui.utils.isSameWeek
 import java.util.Calendar
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
+fun CalendarScreen(vm: CalendarViewModel = viewModel(), onToggleTheme: () -> Unit = {}, isDark: Boolean = false) {
     val state by vm.uiState.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showDrawer by remember { mutableStateOf(false) }
@@ -44,6 +53,17 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
     var showDaySheet by remember { mutableStateOf(false) }
     var showTagManager by remember { mutableStateOf(false) }
     var tagToEdit by remember { mutableStateOf<com.unibo.android.domain.models.TagModel?>(null) }
+
+    val locationPermission = rememberPermissionState(android.Manifest.permission.ACCESS_FINE_LOCATION)
+    val notificationPermission = rememberPermissionState(android.Manifest.permission.POST_NOTIFICATIONS)
+
+    LaunchedEffect(Unit) {
+        if (!notificationPermission.status.isGranted) notificationPermission.launchPermissionRequest()
+        if (!locationPermission.status.isGranted) locationPermission.launchPermissionRequest()
+    }
+    LaunchedEffect(locationPermission.status.isGranted) {
+        if (locationPermission.status.isGranted) vm.loadWeather()
+    }
 
     val tabs = listOf("Mese", "Settimana", "Giorno")
     val tabIndex = when (state.calendarView) {
@@ -59,8 +79,19 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
             val tagFilters = state.activeFilters - CalendarViewModel.NO_TAG_FILTER_ID
             (noTagActive && event.tagIds.isEmpty()) || tagFilters.any { it in event.tagIds }
         }
-    val todayEvents = filteredEvents.filter { isSameDay(it.startTime, now) }
-    val weekEvents = filteredEvents.filter { isSameWeek(it.startTime, now) && !isSameDay(it.startTime, now) && it.startTime > now }
+    val todayStart = com.unibo.android.ui.utils.startOfDay(now)
+    val todayEnd = com.unibo.android.ui.utils.endOfDay(now)
+    val weekEnd = todayStart + 7 * 24 * 3600_000L
+    val todayEvents = filteredEvents.filter { event ->
+        event.startTime <= todayEnd && event.endTime > todayStart
+    }
+    val todayIds = todayEvents.map { it.id }.toSet()
+    val weekEvents = filteredEvents.filter { event ->
+        (1..6).any { offset ->
+            val dayMs = todayStart + offset * 24 * 3600_000L
+            eventSpansDay(event.startTime, event.endTime, dayMs)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -71,7 +102,21 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
                         IconButton(onClick = { showDrawer = true }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
-                    }
+                    },
+                    actions = {
+                        IconButton(onClick = onToggleTheme) {
+                            Icon(
+                                imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = if (isDark) "Tema chiaro" else "Tema scuro"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
             },
             floatingActionButton = {
@@ -106,7 +151,8 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
                             onDayClick = { vm.selectDay(it) },
                             onDayDoubleClick = { vm.selectDay(it); showDaySheet = true },
                             onPrev = { vm.prevMonth() },
-                            onNext = { vm.nextMonth() }
+                            onNext = { vm.nextMonth() },
+                            weatherByDay = state.weatherByDay
                         )
                         TagFilterRow(
                             tags = state.tags,
@@ -198,12 +244,13 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel()) {
                 selectedDay = state.selectedDay,
                 events = vm.eventsForDay(state.selectedDay),
                 tags = state.tags,
+                weather = state.weatherByDay[java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(state.selectedDay)],
                 onEventClick = { vm.selectEvent(it); showDaySheet = false; showForm = true },
                 onDismiss = { showDaySheet = false }
             )
         }
 
-        Sidebar(visible = showDrawer, onClose = { showDrawer = false })
+        Sidebar(visible = showDrawer, onClose = { showDrawer = false }, onToggleTheme = onToggleTheme, isDark = isDark)
 
         TagManagerSheet(
             visible = showTagManager,

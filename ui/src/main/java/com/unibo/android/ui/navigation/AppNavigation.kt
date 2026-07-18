@@ -7,12 +7,12 @@ import androidx.navigation.compose.rememberNavController
 import com.unibo.android.ui.calendar.CalendarScreen
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(onToggleTheme: () -> Unit = {}, isDark: Boolean = false) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Routes.CALENDAR) {
         composable(Routes.CALENDAR) {
-            CalendarScreen()
+            CalendarScreen(onToggleTheme = onToggleTheme, isDark = isDark)
         }
     }
 }
