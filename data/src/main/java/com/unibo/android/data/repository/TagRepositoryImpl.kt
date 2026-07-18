@@ -25,6 +25,6 @@ class TagRepositoryImpl(context: Context) : TagRepository {
     override suspend fun delete(tag: TagModel) =
         tagDao.delete(tag.toEntity())
 
-    private fun TagEntity.toModel() = TagModel(id, name, color)
-    private fun TagModel.toEntity() = TagEntity(id, name, color)
+    private fun TagEntity.toModel() = TagModel(id, name, color, isSystem)
+    private fun TagModel.toEntity() = TagEntity(id, name, color, isSystem)
 }

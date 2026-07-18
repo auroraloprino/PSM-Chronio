@@ -8,5 +8,6 @@ data class TagEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val name: String,
-    val color: String = "#6200EE"
+    val color: String = "#6200EE",
+    val isSystem: Boolean = false
 )
