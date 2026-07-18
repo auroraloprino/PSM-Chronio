@@ -45,7 +45,12 @@ import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun CalendarScreen(vm: CalendarViewModel = viewModel(), onToggleTheme: () -> Unit = {}, isDark: Boolean = false) {
+fun CalendarScreen(
+    vm: CalendarViewModel = viewModel(),
+    onToggleTheme: () -> Unit = {},
+    isDark: Boolean = false,
+    onNavigateToBoards: () -> Unit = {}
+) {
     val state by vm.uiState.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showDrawer by remember { mutableStateOf(false) }
@@ -248,7 +253,14 @@ fun CalendarScreen(vm: CalendarViewModel = viewModel(), onToggleTheme: () -> Uni
             )
         }
 
-        Sidebar(visible = showDrawer, onClose = { showDrawer = false }, onToggleTheme = onToggleTheme, isDark = isDark)
+        Sidebar(
+            visible = showDrawer,
+            onClose = { showDrawer = false },
+            onToggleTheme = onToggleTheme,
+            isDark = isDark,
+            isBoardsSelected = false,
+            onNavigateToBoards = onNavigateToBoards
+        )
 
         TagManagerSheet(
             visible = showTagManager,

@@ -25,7 +25,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Sidebar(visible: Boolean, onClose: () -> Unit, onToggleTheme: () -> Unit = {}, isDark: Boolean = false) {
+fun Sidebar(
+    visible: Boolean,
+    onClose: () -> Unit,
+    onToggleTheme: () -> Unit = {},
+    isDark: Boolean = false,
+    isBoardsSelected: Boolean = false,
+    onNavigateToCalendar: () -> Unit = {},
+    onNavigateToBoards: () -> Unit = {}
+) {
     if (visible) {
         Box(
             modifier = Modifier
@@ -53,14 +61,20 @@ fun Sidebar(visible: Boolean, onClose: () -> Unit, onToggleTheme: () -> Unit = {
             NavigationDrawerItem(
                 icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
                 label = { Text("Calendario") },
-                selected = true,
-                onClick = { onClose() }
+                selected = !isBoardsSelected,
+                onClick = {
+                    onClose()
+                    onNavigateToCalendar()
+                }
             )
             NavigationDrawerItem(
                 icon = { Icon(Icons.Default.Dashboard, contentDescription = null) },
                 label = { Text("Bacheche") },
-                selected = false,
-                onClick = {},
+                selected = isBoardsSelected,
+                onClick = {
+                    onClose()
+                    onNavigateToBoards()
+                },
             )
         }
     }
