@@ -189,6 +189,7 @@ fun BoardScreen(
                                     cards = cards,
                                     columnDragHandleScope = this,
                                     onCardClick = { dialog = DialogState.EditCard(it) },
+                                    onToggleCardDone = { vm.toggleCardDone(it) },
                                     onAddCard = { dialog = DialogState.NewCard(column.id) },
                                     onRenameColumn = { dialog = DialogState.RenameColumn(column) },
                                     onDeleteColumn = { vm.deleteColumn(column) },

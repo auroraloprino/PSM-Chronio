@@ -53,6 +53,7 @@ fun ColumnItem(
     column: ColumnModel,
     cards: List<CardModel>,
     onCardClick: (CardModel) -> Unit,
+    onToggleCardDone: (CardModel) -> Unit,
     onAddCard: () -> Unit,
     onRenameColumn: () -> Unit,
     onDeleteColumn: () -> Unit,
@@ -150,6 +151,7 @@ fun ColumnItem(
 
                     CardItem(
                         card = card,
+                        onToggleDone = { onToggleCardDone(card) },
                         modifier = Modifier
                             .alpha(if (isDragged) 0f else 1f)
                             .onGloballyPositioned {

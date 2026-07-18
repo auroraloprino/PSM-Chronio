@@ -46,7 +46,8 @@ class CardRepositoryImpl(context: Context) : CardRepository {
         description = card.description,
         columnId = card.columnId,
         position = card.position,
-        tags = tags.map { it.toModel() }
+        tags = tags.map { it.toModel() },
+        isDone = card.isDone
     )
 
     private fun CardModel.toEntity() = CardEntity(
@@ -54,7 +55,8 @@ class CardRepositoryImpl(context: Context) : CardRepository {
         title = title,
         description = description,
         columnId = columnId,
-        position = position
+        position = position,
+        isDone = isDone
     )
 
     private fun BoardTagEntity.toModel() = BoardTagModel(id, name, color)

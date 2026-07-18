@@ -6,5 +6,6 @@ data class CardModel(
     val description: String = "",
     val columnId: Long,
     val position: Int,
-    val tags: List<BoardTagModel> = emptyList()
+    val tags: List<BoardTagModel> = emptyList(),
+    val isDone: Boolean = false
 )

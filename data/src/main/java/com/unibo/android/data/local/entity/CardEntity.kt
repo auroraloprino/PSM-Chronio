@@ -21,5 +21,6 @@ data class CardEntity(
     val title: String,
     val description: String = "",
     val columnId: Long,
-    val position: Int
+    val position: Int,
+    val isDone: Boolean = false
 )

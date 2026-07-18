@@ -22,7 +22,7 @@ import com.unibo.android.data.local.entity.ColumnEntity
         BoardTagEntity::class,
         CardTagCrossRef::class
     ],
-    version = 1
+    version = 3
 )
 abstract class ChronioDatabase : RoomDatabase() {
     abstract fun boardDao(): BoardDao
