@@ -146,7 +146,8 @@ fun BoardListScreen(
             onToggleTheme = onToggleTheme,
             isDark = isDark,
             isBoardsSelected = true,
-            onNavigateToCalendar = onNavigateToCalendar
+            onNavigateToCalendar = onNavigateToCalendar,
+            onNavigateToBoard = onBoardClick
         )
     }
 }

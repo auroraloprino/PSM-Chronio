@@ -49,7 +49,8 @@ fun CalendarScreen(
     vm: CalendarViewModel = viewModel(),
     onToggleTheme: () -> Unit = {},
     isDark: Boolean = false,
-    onNavigateToBoards: () -> Unit = {}
+    onNavigateToBoards: () -> Unit = {},
+    onNavigateToBoard: (com.unibo.android.domain.models.BoardModel) -> Unit = {}
 ) {
     val state by vm.uiState.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -259,7 +260,8 @@ fun CalendarScreen(
             onToggleTheme = onToggleTheme,
             isDark = isDark,
             isBoardsSelected = false,
-            onNavigateToBoards = onNavigateToBoards
+            onNavigateToBoards = onNavigateToBoards,
+            onNavigateToBoard = onNavigateToBoard
         )
 
         TagManagerSheet(

@@ -19,7 +19,8 @@ fun AppNavigation(onToggleTheme: () -> Unit = {}, isDark: Boolean = false) {
             CalendarScreen(
                 onToggleTheme = onToggleTheme,
                 isDark = isDark,
-                onNavigateToBoards = { navController.navigate(Routes.BOARD_LIST) }
+                onNavigateToBoards = { navController.navigate(Routes.BOARD_LIST) },
+                onNavigateToBoard = { board -> navController.navigate(Routes.board(board.id, board.title)) }
             )
         }
 
