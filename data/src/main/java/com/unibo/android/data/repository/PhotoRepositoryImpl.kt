@@ -14,9 +14,6 @@ class PhotoRepositoryImpl(
 
     override suspend fun searchPhotos(query: String): Result<List<PhotoModel>> {
         return try {
-            // Picsum non supporta la ricerca per parola chiave: la query viene usata
-            // come seed per scegliere una pagina, così la stessa ricerca dà sempre
-            // lo stesso risultato mentre query diverse mostrano foto diverse.
             val page = (abs(query.hashCode()) % PAGE_COUNT) + 1
             val response = api.listPhotos(page = page, limit = PAGE_SIZE)
             Result.success(response.map { it.toModel() })
