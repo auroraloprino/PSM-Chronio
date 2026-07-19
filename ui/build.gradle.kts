@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.reorderable)
     implementation(libs.coil.compose)
+    implementation(libs.okhttp.core)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)

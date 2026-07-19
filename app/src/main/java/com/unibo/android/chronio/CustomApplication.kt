@@ -6,12 +6,14 @@ import android.app.NotificationManager
 import android.content.Context
 import com.unibo.android.data.di.RepositoryProviderImpl
 import com.unibo.android.domain.di.UseCasesProvider
+import com.unibo.android.ui.ImageLoaderInit
 
 class CustomApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         UseCasesProvider.setup(RepositoryProviderImpl(this))
         UseCasesProvider.reminderScheduler = ReminderSchedulerImpl(this)
+        ImageLoaderInit.install(this)
         createNotificationChannel()
     }
 

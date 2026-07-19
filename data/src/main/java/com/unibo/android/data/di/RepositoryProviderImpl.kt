@@ -1,7 +1,7 @@
 package com.unibo.android.data.di
 
 import android.content.Context
-import com.unibo.android.data.remote.PicsumApi
+import com.unibo.android.data.remote.WikimediaApi
 import com.unibo.android.data.repository.BoardRepositoryImpl
 import com.unibo.android.data.repository.BoardTagRepositoryImpl
 import com.unibo.android.data.repository.CardRepositoryImpl
@@ -31,5 +31,5 @@ class RepositoryProviderImpl(context: Context) : RepositoryProvider {
     override val columnRepository: ColumnRepository = ColumnRepositoryImpl(context)
     override val cardRepository: CardRepository = CardRepositoryImpl(context)
     override val boardTagRepository: BoardTagRepository = BoardTagRepositoryImpl(context)
-    override val photoRepository: PhotoRepository = PhotoRepositoryImpl(PicsumApi.create())
+    override val photoRepository: PhotoRepository = PhotoRepositoryImpl(WikimediaApi.create())
 }

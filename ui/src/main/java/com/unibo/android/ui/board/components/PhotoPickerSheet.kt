@@ -77,7 +77,7 @@ fun PhotoPickerSheet(
                     vm.onQueryChange(it)
                     vm.search()
                 },
-                label = { Text("Cerca foto (Picsum)") },
+                label = { Text("Cerca foto") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
