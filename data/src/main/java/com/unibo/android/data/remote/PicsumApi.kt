@@ -1,7 +1,7 @@
 package com.unibo.android.data.remote
 
 import com.unibo.android.data.BuildConfig
-import com.unibo.android.data.remote.model.UnsplashSearchResponse
+import com.unibo.android.data.remote.model.PicsumPhoto
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -10,31 +10,24 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
-interface UnsplashApi {
+interface PicsumApi {
 
-    @GET("search/photos")
-    suspend fun searchPhotos(
-        @Query("query") query: String,
-        @Query("per_page") perPage: Int = 30,
-        @Query("orientation") orientation: String = "landscape"
-    ): UnsplashSearchResponse
+    @GET("v2/list")
+    suspend fun listPhotos(
+        @Query("page") page: Int,
+        @Query("limit") limit: Int = 30
+    ): List<PicsumPhoto>
 
     companion object {
-        private const val BASE_URL = "https://api.unsplash.com/"
+        private const val BASE_URL = "https://picsum.photos/"
 
-        fun create(): UnsplashApi {
+        fun create(): PicsumApi {
             val logging = HttpLoggingInterceptor().apply {
                 level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
                 else HttpLoggingInterceptor.Level.NONE
             }
 
             val client = OkHttpClient.Builder()
-                .addInterceptor { chain ->
-                    val request = chain.request().newBuilder()
-                        .addHeader("Authorization", "Client-ID ${BuildConfig.UNSPLASH_ACCESS_KEY}")
-                        .build()
-                    chain.proceed(request)
-                }
                 .addInterceptor(logging)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(10, TimeUnit.SECONDS)
@@ -45,7 +38,7 @@ interface UnsplashApi {
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
-                .create(UnsplashApi::class.java)
+                .create(PicsumApi::class.java)
         }
     }
 }
